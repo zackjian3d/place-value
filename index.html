@@ -548,7 +548,7 @@ function l1(){
   const say=m=>{ const [o,t]=m.counts, v=m.value();
     $('#big').innerHTML=numHTML(v);
     $('#say').innerHTML=`<span class="c1">${t} 捆</span> 和 <span class="c0">${o} 根</span>，總共 ${v} 根`;
-    return ['n'+v,'k捆'+t,'k根'+o]; };
+    const full=['n'+v]; if(t){ full.push('k捆'+t); if(o) full.push('k根'+o); } return full; };
   const ms=missions($('#ms'),[
     {t:'一直按「＋1根」，放到 10 根，看看會發生什麼事？'},
     {t:'做出 <b>23</b> 根：要幾捆？幾根？',say:'做出二十三根'},
@@ -557,7 +557,7 @@ function l1(){
   ].map((x,i)=>({...x,ok:[(e)=>e==='merge',(e,m)=>m.value()===23&&m.canon(),(e)=>e==='break',(e,m)=>m.value()===50&&m.canon()][i]})),'l1');
   const m=createMat($('#mat'),{places:2,skin:'straw',interactive:true,labels:['個位（根）','十位（捆）'],plusLabels:['＋1根','＋1捆'],
     mergeText:()=>'10 根 → 1 捆！',breakText:()=>'1 捆 = 10 根',
-    onEvent:(e,m)=>{ const s=say(m); if(e==='change') speakSoon(s); if(e==='merge') speak('bind1'); ms.check(e,m); }});
+    onEvent:(e,m)=>{ say(m); if(e==='change') speakSoon(['n'+m.value()],120); if(e==='merge'){ clearTimeout(speakTimer); speak('bind1'); } ms.check(e,m); }});
   say(m);
   $('#spk').onclick=()=>speak(say(m));
   $('#reset').onclick=()=>{ if(m.busy) return; m.set([0,0]); say(m); };
@@ -578,7 +578,7 @@ function l2(){
     $('#big').innerHTML=numHTML(v);
     const parts=[]; if(h) parts.push(`<span class="c2">${h*100}</span>`); if(t) parts.push(`<span class="c1">${t*10}</span>`); if(o||!parts.length) parts.push(`<span class="c0">${o}</span>`);
     $('#say').innerHTML=`<span class="c2">${h} 個百</span>・<span class="c1">${t} 個十</span>・<span class="c0">${o} 個一</span><br>${parts.join(' + ')} = ${v}`;
-    return ['n'+v,'k個百'+h,'k個十'+t,'k個一'+o]; };
+    const full=['n'+v]; if(v>=10){ if(h) full.push('k個百'+h); if(t) full.push('k個十'+t); if(o) full.push('k個一'+o); } return full; };
   const ms=missions($('#ms'),[
     {t:'一直按個位的「＋」，放到 10 個小方塊，看它們變成什麼？',ok:(e,m,p)=>e==='merge'&&p===0},
     {t:'做出 <b>99</b>，再按一下個位的「＋」，看看連鎖變身！',say:'做出九十九，再加一個看看',ok:(e,m,p)=>e==='merge'&&p===1},
@@ -589,7 +589,7 @@ function l2(){
   const names=['10 個一 → 1 個十！','10 個十 → 1 個百！'];
   const m=createMat($('#mat'),{places:3,skin:'blocks',interactive:true,
     mergeText:p=>names[p],breakText:p=>p===2?'1 個百 = 10 個十':'1 個十 = 10 個一',
-    onEvent:(e,m,p)=>{ const s=say(m); if(e==='change') speakSoon(s); if(e==='merge') speak('merge'+p); ms.check(e,m,p); }});
+    onEvent:(e,m,p)=>{ say(m); if(e==='change') speakSoon(['n'+m.value()],120); if(e==='merge'){ clearTimeout(speakTimer); speak('merge'+p); } ms.check(e,m,p); }});
   say(m);
   $('#spk').onclick=()=>speak(say(m));
   $('#reset').onclick=()=>{ if(m.busy) return; m.set([0,0,0]); say(m); };
@@ -659,7 +659,7 @@ function l4(){
       if(v===T&&!m.canon()){ $('#fb').innerHTML='數量對了！但是有房間超過 9 個，要<b>綁起來</b>喔'; speakSoon('over',300); }
       if(v===T&&m.canon()){ solved=true; const [o,t,h]=m.counts;
         $('#fb').innerHTML=`答對了！<span class="c2">${h} 個百</span>、<span class="c1">${t} 個十</span>、<span class="c0">${o} 個一</span>`;
-        cheer('答對了！🎉'); speak(['right','n'+T,'is','k個百'+h,'k個十'+t,'k個一'+o]);
+        cheer('答對了！🎉'); speak(['right','n'+T,'is',...(h?['k個百'+h]:[]),...(t?['k個十'+t]:[]),...(o?['k個一'+o]:[])]);
         $('#next').classList.remove('hidden'); $('#next').textContent=r===targets.length-1?'完成 🌟':'下一題 ▶'; } }});
   function ask(){ solved=false; m.set([0,0,0]); $('#big').innerHTML=numHTML(targets[r]); $('#fb').innerHTML='&nbsp;'; $('#next').classList.add('hidden'); prog(); speak(['make','n'+targets[r]]); }
   $('#next').onclick=()=>{ r++; if(r>=targets.length){ giveStar('l4'); prog(); view.querySelector('.numbox').innerHTML='<div class="big">🌟</div><div class="say">五題全對！你已經會用積木做數字了</div>'; $('#next').textContent='再玩一次'; $('#next').onclick=()=>go('l4'); confetti(80); speak('l4done'); return; } ask(); };
