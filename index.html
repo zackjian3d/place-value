@@ -235,12 +235,52 @@ header.hide{transform:translateY(-110%);opacity:0;pointer-events:none}
 .ansbox .opts{display:flex;justify-content:center;gap:14px;margin:0;flex-wrap:wrap}
 .ansbox .opts button{width:86px;height:86px;border-radius:50%;padding:0;font-size:30px;background:#fff7c2}
 .ansbox .opts button.right{background:#bbf7d0}.ansbox .opts button.wrong{background:#fecaca}
+
+#card,.digits button{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.card.dragging{width:64px;height:76px;transform:scale(1.18) rotate(-6deg);box-shadow:0 12px 0 rgba(0,0,0,.25);z-index:70}
+.slot{transition:transform .15s,background .15s}
+.slot.over{transform:scale(1.07);background:#fff3a8}
+.slot.over .in{background:repeating-linear-gradient(45deg,transparent 0 8px,rgba(255,180,0,.15) 8px 16px)}
+
+/* 一頁填滿，不上下滑 */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+.app{height:100vh;height:100dvh;display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
+header{position:relative;flex:none;padding:8px 0 4px}
+header.hide{transform:none;opacity:1;pointer-events:auto}
+#view{flex:none;transform-origin:top center;padding-bottom:8px}
+.story{padding:7px 10px;font-size:14px;margin-bottom:8px}
+.story .face{font-size:28px}
+.mission{padding:7px 10px;font-size:14px;margin-bottom:8px;min-height:0}
+.numbox{padding:6px 10px 8px;margin-bottom:8px}
+.big{font-size:58px}
+.say{font-size:15px}
+.row{margin:8px 0}
+.hint{margin:2px 0;font-size:12px}
+.mat{padding-top:20px}
+.ansbox{margin:20px 0 4px}
+.hero{padding:14px 14px;margin-bottom:10px}
+.lv{padding:10px 12px;margin-bottom:8px}
+.slots{margin-bottom:6px}
+.slot{height:116px}
+
+/* 完成特效、上一題 */
+.conf.round{border-radius:50%;width:10px;height:10px}
+.bubble{position:fixed;z-index:75;pointer-events:none;background:#fff;border:3px solid var(--line);border-radius:16px;padding:4px 12px;font-size:18px;font-weight:900;color:#e5531a;white-space:nowrap;box-shadow:0 3px 0 var(--line);transform-origin:left bottom}
+.bubble::after{content:"";position:absolute;left:14px;bottom:-11px;border:8px solid transparent;border-top-color:var(--line)}
+#toast{top:64px;bottom:auto;transform:translateX(-50%) translateY(-20px)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.qnav{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 0 8px}
+.qnav .progress{margin:0}
+.mini{min-width:84px;height:36px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 3px 0 var(--line);font-size:14px;font-weight:700;padding:0 10px}
+.mini:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.ghostbtn{visibility:hidden}
+.mprev{float:right;width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid var(--line);box-shadow:0 2px 0 var(--line);font-size:13px;margin-left:6px}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <button class="iconbtn" id="back" aria-label="回首頁">🏠</button>
+    <button class="iconbtn" id="back" aria-label="上一頁">◀</button>
     <h1 id="title">數字住哪裡？</h1>
     <button class="iconbtn" id="snd" aria-label="聲音開關">🔊</button>
   </header>
@@ -266,7 +306,7 @@ header.hide{transform:translateY(-110%);opacity:0;pointer-events:none}
 "allDone":"全部完成！你好棒喔！",
 "st1":"熊熊開了吸管店。一根一根數太慢了，所以，每十根就綁成一捆！",
 "st2":"橘色小方塊是一。十個黏在一起，變成綠色長條，是十。十條拼起來，變成藍色大片，是一百。",
-"st3":"同一個數字，住在越左邊的房間，就越大喔！點一下房間，把數字卡搬過去。",
+"st3":"同一個數字，住在越左邊的房間，就越大喔！用手指把數字卡，拖到房間裡。",
 "m1_1":"一直按「加一根」，放到十根，看看會發生什麼事？",
 "m1_2":"請你做出二十三根。要幾捆？幾根呢？",
 "m1_3":"點一下一捆吸管，把它拆開。數數看，是不是十根？",
@@ -278,7 +318,7 @@ header.hide{transform:translateY(-110%);opacity:0;pointer-events:none}
 "m2_5":"請你做出一百二十。",
 "m3_1":"把三搬到百位，它會變成多少呢？",
 "m3_2":"再把三搬到十位看看。",
-"m3_3":"請你做出五百。先選數字，再點房間。",
+"m3_3":"請你做出五百。可以把下面的數字，拖進房間喔！",
 "m3_4":"請你做出八十。",
 "m3_5":"請你做出七。",
 "make":"請你做出",
@@ -391,7 +431,24 @@ function confetti(n=46){ const cs=['#f59e0b','#16a34a','#2563eb','#ec4899','#fac
   for(let i=0;i<n;i++){ const d=document.createElement('div'); d.className='conf'; d.style.left=Math.random()*100+'vw'; d.style.background=cs[i%cs.length];
     document.body.appendChild(d); const x=(Math.random()-.5)*160, r=Math.random()*720;
     d.animate([{transform:'translate(0,0) rotate(0)'},{transform:`translate(${x}px,${innerHeight+40}px) rotate(${r}deg)`}],{duration:1400+Math.random()*1200,delay:Math.random()*300,easing:'cubic-bezier(.2,.6,.4,1)'}).finished.then(()=>d.remove()); } }
-function cheer(text){ sfx('good'); confetti(); if(text){toast(text);} }
+function cannons(n=28){ const cs=['#f59e0b','#16a34a','#2563eb','#ec4899','#facc15','#a855f7','#22d3ee'];
+  const W=innerWidth,H=innerHeight;
+  for(const side of [0,1]) for(let i=0;i<n;i++){
+    const d=document.createElement('div'); d.className='conf'+(i%3===0?' round':''); d.style.background=cs[(i+side)%cs.length];
+    d.style.left=(side?W-10:0)+'px'; d.style.top=(H-30)+'px'; document.body.appendChild(d);
+    const dir=side?-1:1, px=dir*(W*(.18+Math.random()*.42)), py=-(H*(.35+Math.random()*.4)), r=Math.random()*900;
+    d.animate([{transform:'translate(0,0) rotate(0)',opacity:1},
+               {transform:`translate(${px}px,${py}px) rotate(${r/2}deg)`,opacity:1,offset:.45,easing:'ease-in'},
+               {transform:`translate(${px*1.25}px,${py+H*.55}px) rotate(${r}deg)`,opacity:0}],
+      {duration:1500+Math.random()*700,delay:Math.random()*160,easing:'cubic-bezier(.15,.7,.3,1)',fill:'forwards'});
+    setTimeout(()=>d.remove(),2600); } }
+function bubble(text){ const b=[...document.querySelectorAll('#view .buddy')].find(x=>x.offsetParent);
+  if(!b){ toast(text,1400); return; }
+  const r=b.getBoundingClientRect(), el=document.createElement('div'); el.className='bubble'; el.textContent=text; document.body.appendChild(el);
+  el.style.left=(r.left)+'px'; el.style.top=(r.top-42)+'px';
+  el.animate([{opacity:0,transform:'scale(.5) translateY(10px)'},{opacity:1,transform:'scale(1.1)',offset:.15},{opacity:1,transform:'scale(1)',offset:.3},{opacity:1,offset:.8},{opacity:0,transform:'translateY(-8px)'}],{duration:1600,fill:'forwards'});
+  setTimeout(()=>el.remove(),1700); }
+function cheer(text){ sfx('good'); cannons(); if(text) bubble(text); }
 
 /* 星星 */
 let stars={};
@@ -509,8 +566,9 @@ function createMat(root,opt){
 /* 任務列 */
 function missions(el,list,key){
   let i=0; const myGen=gen; const K=j=>'m'+key.slice(1)+'_'+(j+1);
-  const draw=()=>{ if(i<list.length){ el.className='mission'; el.innerHTML=`<button class="play" data-say="${K(i)}" aria-label="念題目">▶</button><b>任務 ${i+1}/${list.length}</b>${list[i].t}`; }
-    else { el.className='mission done'; el.innerHTML='🌟 全部完成！拿到一顆星星。現在可以自由玩，或回首頁挑下一關。'; } };
+  const draw=()=>{ if(i<list.length){ el.className='mission'; el.innerHTML=`<button class="play" data-say="${K(i)}" aria-label="念題目">▶</button>${i>0?'<button class="mprev" aria-label="上一個任務">◀</button>':''}<b>任務 ${i+1}/${list.length}</b>${list[i].t}`; }
+    else { el.className='mission done'; el.innerHTML='<button class="mprev" aria-label="上一個任務">◀</button>🌟 全部完成！拿到一顆星星。可以自由玩，或回首頁挑下一關。'; }
+    const pb=el.querySelector('.mprev'); if(pb) pb.onclick=()=>{ i--; sfx('tap'); draw(); speak(K(i)); }; };
   draw();
   return { check(...a){ if(i<list.length&&list[i].ok(...a)){ i++; setTimeout(()=>{ if(myGen!==gen) return; cheer(i<list.length?'任務完成！':'太厲害了！'); draw();
         if(i===list.length){ giveStar(key); speak('allDone'); } else speakSoon(K(i),900); },450); } },
@@ -540,8 +598,12 @@ function home(){
   view.querySelectorAll('.lv').forEach(b=>b.onclick=()=>{ sfx('tap'); go(b.dataset.k); });
   $('#pp').onclick=parentSheet;
 }
-function go(k){ newScreen(); window.scrollTo(0,0); $('#back').style.visibility='visible'; ({l1,l2,l3,l4,l5})[k](); }
-$('#back').onclick=()=>{ sfx('tap'); home(); window.scrollTo(0,0); };
+const SCREENS={l1,l2,l3,l4,l5};
+function show(k){ newScreen(); window.scrollTo(0,0); $('#back').style.visibility='visible'; SCREENS[k](); }
+function route(){ const k=location.hash.slice(1); if(SCREENS[k]) show(k); else home(); }
+function go(k){ if(location.hash.slice(1)===k) show(k); else location.hash=k; }
+addEventListener('hashchange',route);
+$('#back').onclick=()=>{ sfx('tap'); if(history.length>1&&location.hash) history.back(); else { location.hash=''; } };
 
 /* 第 1 關：綁吸管 */
 function l1(){
@@ -608,7 +670,7 @@ function l2(){
 function l3(){
   $('#title').textContent='第 3 關・數字搬家';
   view.innerHTML=`
-  <div class="story"><span class="face">🏠</span><button class="play" data-say="st3" aria-label="念給我聽">▶</button><span>同一個數字，<b>住在越左邊的房間，就越大</b>。點房間，把數字卡搬過去！</span></div>
+  <div class="story"><span class="face">🏠</span><button class="play" data-say="st3" aria-label="念給我聽">▶</button><span>同一個數字，<b>住在越左邊的房間，就越大</b>。用手指把數字卡<b>拖到房間裡</b>！</span></div>
   <div class="mission" id="ms"></div>
   <div class="slots" id="slots"></div>
   <div class="digits" id="digits"></div>
@@ -618,8 +680,8 @@ function l3(){
   let d=3,p=0;
   const slots=$('#slots');
   const mat=createMat($('#mat'),{places:3,skin:'blocks',interactive:false});
-  for(let q=2;q>=0;q--){ const s=document.createElement('div'); s.className='slot s'+q; s.dataset.p=q; s.innerHTML=`<div class="roof">${PLACE_NAME[q]}</div><div class="in"></div>`; slots.appendChild(s); s.onclick=()=>{ if(q!==p){ move(q); } }; }
-  const dg=$('#digits'); for(let k=1;k<=9;k++){ const b=document.createElement('button'); b.textContent=k; b.onclick=()=>{ d=k; sfx('tap'); draw(); upd(); }; dg.appendChild(b); }
+  for(let q=2;q>=0;q--){ const s=document.createElement('div'); s.className='slot s'+q; s.dataset.p=q; s.innerHTML=`<div class="roof">${PLACE_NAME[q]}</div><div class="in"></div>`; slots.appendChild(s); s.onclick=e=>{ if(e.target.closest('#card')) return; if(q!==p){ move(q); } }; }
+  const dg=$('#digits'); for(let k=1;k<=9;k++){ const b=document.createElement('button'); b.textContent=k; b.dataset.k=k; dg.appendChild(b); }
   const val=()=>d*10**p;
   function draw(){
     slots.querySelectorAll('.slot').forEach(s=>{ const q=+s.dataset.p, inn=s.querySelector('.in');
@@ -631,16 +693,54 @@ function l3(){
     const c=[0,0,0]; c[p]=d; mat.set(c);
   }
   const upd=()=>{ const v=val(); speakSoon(['d'+d+'_'+p,'n'+v],300); ms.check(d,p); };
+  function settle(fromRect){
+    const c=$('#card'), nw=c.getBoundingClientRect(), dx=fromRect.left-nw.left, dy=fromRect.top-nw.top;
+    c.animate([{transform:`translate(${dx}px,${dy}px) scale(1.15)`},{transform:'scale(1.12)',offset:.7},{transform:'none'}],{duration:320,easing:'ease-out'});
+  }
   function move(q){
     const old=$('#card').getBoundingClientRect(); p=q; draw();
     const c=$('#card'), nw=c.getBoundingClientRect();
     c.animate([{transform:`translate(${old.left-nw.left}px,${old.top-nw.top}px)`},{transform:`translate(${(old.left-nw.left)/2}px,${(old.top-nw.top)/2-40}px) rotate(-10deg)`},{transform:'none'}],{duration:520,easing:'ease-in-out'});
     sfx('land'); upd();
   }
+  /* 手指拖曳：數字卡、或下面的數字鍵，都可以拖進房間 */
+  let drag=null;
+  const slotAt=(x,y)=>[...slots.querySelectorAll('.slot')].find(s=>{ const r=s.getBoundingClientRect(); return x>=r.left-6&&x<=r.right+6&&y>=r.top-20&&y<=r.bottom+10; });
+  function onDown(e){
+    if(drag||(e.button||0)>0) return;
+    const card=e.target.closest('#card'), key=e.target.closest('#digits button');
+    if(!card&&!key) return;
+    e.preventDefault();
+    drag={src:card||key, digit:card?d:+key.dataset.k, fromCard:!!card, x0:e.clientX, y0:e.clientY, moved:false, g:null, over:null};
+    window.addEventListener('pointermove',onMove,{passive:false}); window.addEventListener('pointerup',onUp); window.addEventListener('pointercancel',onUp);
+  }
+  function onMove(e){
+    if(!drag) return; e.preventDefault();
+    if(!drag.moved){ if(Math.hypot(e.clientX-drag.x0,e.clientY-drag.y0)<6) return;
+      drag.moved=true; const g=document.createElement('div'); g.className='card ghost dragging c'+(drag.fromCard?p:0); g.textContent=drag.digit; fx.appendChild(g); drag.g=g;
+      if(drag.fromCard) drag.src.style.visibility='hidden'; sfx('tap'); }
+    const g=drag.g; g.style.left=(e.clientX-32)+'px'; g.style.top=(e.clientY-70)+'px';
+    const s=slotAt(e.clientX,e.clientY-30);
+    if(s!==drag.over){ drag.over&&drag.over.classList.remove('over'); drag.over=s; if(s){ s.classList.add('over'); g.className='card ghost dragging c'+s.dataset.p; tone(520+ +s.dataset.p*160,.06,'triangle',.08); } }
+  }
+  function onUp(e){
+    window.removeEventListener('pointermove',onMove); window.removeEventListener('pointerup',onUp); window.removeEventListener('pointercancel',onUp);
+    const D=drag; drag=null; if(!D) return;
+    if(!D.moved){ if(!D.fromCard){ d=D.digit; sfx('tap'); draw(); upd(); } return; }
+    D.over&&D.over.classList.remove('over');
+    const gr=D.g.getBoundingClientRect();
+    if(D.over&&e.type==='pointerup'){
+      D.g.remove(); d=D.digit; p=+D.over.dataset.p; draw(); settle(gr); sfx('land'); upd();
+    } else {
+      const back=D.src.getBoundingClientRect();
+      D.g.animate([{transform:'none'},{transform:`translate(${back.left-gr.left}px,${back.top-gr.top}px) scale(.7)`,opacity:.3}],{duration:280,easing:'ease-in',fill:'forwards'}); setTimeout(()=>{ D.g.remove(); if(D.fromCard&&D.src.isConnected) D.src.style.visibility=''; },300);
+    }
+  }
+  slots.addEventListener('pointerdown',onDown); dg.addEventListener('pointerdown',onDown);
   const ms=missions($('#ms'),[
     {t:'把 <b>3</b> 搬到<b>百位</b>，它變成多少？',say:'把三搬到百位',ok:(d,p)=>d===3&&p===2},
     {t:'再把 3 搬到<b>十位</b>',say:'把三搬到十位',ok:(d,p)=>d===3&&p===1},
-    {t:'做出 <b>500</b>（先選數字，再點房間）',say:'做出五百',ok:(d,p)=>d===5&&p===2},
+    {t:'做出 <b>500</b>（把下面的數字拖進房間）',say:'做出五百',ok:(d,p)=>d===5&&p===2},
     {t:'做出 <b>80</b>',say:'做出八十',ok:(d,p)=>d===8&&p===1},
     {t:'做出 <b>7</b>',say:'做出七',ok:(d,p)=>d===7&&p===0},
   ],'l3');
@@ -656,7 +756,7 @@ function l4(){
   const targets=[rnd(12,49),rnd(51,98),rnd(1,9)*100+rnd(1,9)*10+rnd(1,9),rnd(1,9)*100+rnd(1,9),rnd(1,9)*100+rnd(1,9)*10];
   let r=0, solved=false;
   view.innerHTML=`
-  <div class="progress" id="prog"></div>
+  <div class="qnav"><button class="mini" id="prev">◀ 上一題</button><div class="progress" id="prog"></div><span class="mini ghostbtn"></span></div>
   <div class="numbox"><div class="buddy"><i></i><i></i><b></b></div><button class="spk" id="spk">🔊</button><div class="say">請用積木做出</div><div class="big" id="big"></div><div class="say" id="fb">&nbsp;</div></div>
   <div id="mat"></div>
   <div class="row"><button class="pill" id="hint">💡 提示</button><button class="pill" id="reset">🔄 清空</button><button class="pill main hidden" id="next">下一題 ▶</button></div>`;
@@ -667,12 +767,13 @@ function l4(){
       if(v===T&&!m.canon()){ $('#fb').innerHTML='數量對了！但是有房間超過 9 個，要<b>綁起來</b>喔'; speakSoon('over',300); }
       if(v===T&&m.canon()){ solved=true; const [o,t,h]=m.counts;
         $('#fb').innerHTML=`答對了！<span class="c2">${h} 個百</span>、<span class="c1">${t} 個十</span>、<span class="c0">${o} 個一</span>`;
-        cheer('答對了！🎉'); speak(['right','n'+T,'is',...(h?['k個百'+h]:[]),...(t?['k個十'+t]:[]),...(o?['k個一'+o]:[])]);
+        cheer('答對了！'); speak(['right','n'+T,'is',...(h?['k個百'+h]:[]),...(t?['k個十'+t]:[]),...(o?['k個一'+o]:[])]);
         $('#next').classList.remove('hidden'); $('#next').textContent=r===targets.length-1?'完成 🌟':'下一題 ▶'; } }});
-  function ask(){ solved=false; m.set([0,0,0]); $('#big').innerHTML=numHTML(targets[r]); $('#fb').innerHTML='&nbsp;'; $('#next').classList.add('hidden'); prog(); speak(['make','n'+targets[r]]); }
-  $('#next').onclick=()=>{ r++; if(r>=targets.length){ giveStar('l4'); prog(); view.querySelector('.numbox').innerHTML='<div class="big">🌟</div><div class="say">五題全對！你已經會用積木做數字了</div>'; $('#next').textContent='再玩一次'; $('#next').onclick=()=>go('l4'); confetti(80); speak('l4done'); return; } ask(); };
+  function ask(){ solved=false; $('#prev').style.visibility=r>0?'visible':'hidden'; m.set([0,0,0]); $('#big').innerHTML=numHTML(targets[r]); $('#fb').innerHTML='&nbsp;'; $('#next').classList.add('hidden'); prog(); speak(['make','n'+targets[r]]); }
+  $('#next').onclick=()=>{ r++; if(r>=targets.length){ giveStar('l4'); prog(); view.querySelector('.numbox').innerHTML='<div class="big">🌟</div><div class="say">五題全對！你已經會用積木做數字了</div>'; $('#next').textContent='再玩一次'; $('#next').onclick=()=>go('l4'); cannons(40); speak('l4done'); return; } ask(); };
   $('#hint').onclick=()=>{ const T=targets[r]; const h=Math.floor(T/100),t=Math.floor(T/10)%10,o=T%10;
     const s=`百位放 ${h} 片、十位放 ${t} 條、個位放 ${o} 個`; toast(s,3500); speak(['n'+T,'h百'+h,'h十'+t,'h個'+o]); };
+  $('#prev').onclick=()=>{ if(r>0&&!m.busy){ r--; sfx('tap'); ask(); } };
   $('#spk').onclick=()=>speak(['make','n'+targets[r]]);
   $('#reset').onclick=()=>{ if(!m.busy&&!solved){ m.set([0,0,0]); $('#fb').innerHTML='&nbsp;'; } };
   ask();
@@ -681,9 +782,9 @@ function l4(){
 /* 第 5 關：猜猜是多少 */
 function l5(){
   $('#title').textContent='第 5 關・猜猜是多少';
-  const N=6; let r=0, lock=false;
+  const N=6; let r=0, lock=false; const qs=[];
   view.innerHTML=`
-  <div class="progress" id="prog"></div>
+  <div class="qnav"><button class="mini" id="prev">◀ 上一題</button><div class="progress" id="prog"></div><span class="mini ghostbtn"></span></div>
   <div class="story"><span class="face">🔍</span><button class="play" data-say="askCount" aria-label="念給我聽">▶</button><span id="q">數數看，這是多少？<b>先數大的，再數小的</b>。</span></div>
   <div id="mat"></div>
   <div class="ansbox"><div class="anslabel">👇 這些積木合起來是多少？選一個</div><div class="opts" id="opts"></div></div>
@@ -703,7 +804,7 @@ function l5(){
     return {n,c:[o,t,h],opts:[...set].sort(()=>Math.random()-.5)};
   }
   function ask(){
-    lock=false; prog(); const Q=make(); m.set(Q.c); $('#next').classList.add('hidden');
+    lock=false; prog(); $('#prev').style.visibility=r>0?'visible':'hidden'; const Q=qs[r]||(qs[r]=make()); m.set(Q.c); $('#next').classList.add('hidden');
     $('#q').innerHTML='數數看，這是多少？<b>先數大的，再數小的</b>。';
     const box=$('#opts'); box.innerHTML='';
     Q.opts.forEach(v=>{ const b=document.createElement('button'); b.innerHTML=numHTML(v);
@@ -716,7 +817,8 @@ function l5(){
     $('#mat').classList.add('nodigit');
     speak('askCount');
   }
-  $('#next').onclick=()=>{ r++; if(r>=N){ giveStar('l5'); prog(); $('#q').innerHTML='🌟 六題全部完成！你是位值小達人！'; $('#opts').innerHTML=''; m.set([0,0,0]); $('#next').textContent='再玩一次'; $('#next').onclick=()=>go('l5'); confetti(80); speak('l5done'); return; } ask(); };
+  $('#prev').onclick=()=>{ if(r>0){ r--; sfx('tap'); ask(); } };
+  $('#next').onclick=()=>{ r++; if(r>=N){ giveStar('l5'); prog(); $('#q').innerHTML='🌟 六題全部完成！你是位值小達人！'; $('#opts').innerHTML=''; m.set([0,0,0]); $('#next').textContent='再玩一次'; $('#next').onclick=()=>go('l5'); cannons(40); speak('l5done'); return; } ask(); };
   ask();
 }
 
@@ -744,9 +846,14 @@ function parentSheet(){
 }
 
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-say]'); if(b){ e.stopPropagation(); getAC(); speak(b.dataset.say.split(',')); } });
-const hdr=document.querySelector('header');
-addEventListener('scroll',()=>hdr.classList.toggle('hide',scrollY>12),{passive:true});
-home();
+/* 自動縮放：內容一定塞進一個螢幕 */
+function fit(){ const hdr=document.querySelector('header'); const avail=innerHeight-hdr.offsetHeight-22;
+  view.style.transform=''; const h=view.scrollHeight, k=Math.min(1,avail/h);
+  if(k<1) view.style.transform=`scale(${k.toFixed(3)})`; }
+new ResizeObserver(()=>requestAnimationFrame(fit)).observe(view);
+addEventListener('resize',fit);
+document.addEventListener('touchmove',e=>{ if(!e.target.closest('.sheet .in')) e.preventDefault(); },{passive:false});
+route();
 </script>
 </body>
 </html>
