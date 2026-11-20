@@ -275,6 +275,11 @@ header.hide{transform:none;opacity:1;pointer-events:auto}
 .mini:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
 .ghostbtn{visibility:hidden}
 .mprev{float:right;width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid var(--line);box-shadow:0 2px 0 var(--line);font-size:13px;margin-left:6px}
+
+.mission{display:flex!important;align-items:center;gap:8px}
+.mission .play{float:none;margin:0}
+.mission .mtext{flex:1;min-width:0}
+.mission .mprev{float:none;margin:0;flex:none}
 </style>
 </head>
 <body>
@@ -573,8 +578,8 @@ function createMat(root,opt){
 /* 任務列 */
 function missions(el,list,key){
   let i=0; const myGen=gen; const K=j=>'m'+key.slice(1)+'_'+(j+1);
-  const draw=()=>{ if(i<list.length){ el.className='mission'; el.innerHTML=`<button class="play" data-say="${K(i)}" aria-label="念題目">▶</button>${i>0?'<button class="mprev" aria-label="上一個任務">◀</button>':''}<b>任務 ${i+1}/${list.length}</b>${list[i].t}`; }
-    else { el.className='mission done'; el.innerHTML='<button class="mprev" aria-label="上一個任務">◀</button>🌟 全部完成！拿到一顆星星。可以自由玩，或回首頁挑下一關。'; }
+  const draw=()=>{ if(i<list.length){ el.className='mission'; el.innerHTML=`<button class="play" data-say="${K(i)}" aria-label="念題目">▶</button><span class="mtext"><b>任務 ${i+1}/${list.length}</b>${list[i].t}</span>${i>0?'<button class="mprev" aria-label="上一個任務">◀</button>':''}`; }
+    else { el.className='mission done'; el.innerHTML='<span class="mtext">🌟 全部完成！拿到一顆星星。可以自由玩，或回首頁挑下一關。</span><button class="mprev" aria-label="上一個任務">◀</button>'; }
     const pb=el.querySelector('.mprev'); if(pb) pb.onclick=()=>{ i--; sfx('tap'); draw(); speak(K(i)); }; };
   draw();
   return { check(...a){ if(i<list.length&&list[i].ok(...a)){ i++; setTimeout(()=>{ if(myGen!==gen) return; cheer(i<list.length?'任務完成！':'太厲害了！'); draw();
