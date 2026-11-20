@@ -227,6 +227,8 @@ header h1{font-size:21px;color:var(--line);text-shadow:0 2px 0 #fff}
 .vlist button{text-align:left;background:#fff;border:3px solid var(--line);box-shadow:0 4px 0 var(--line);border-radius:16px;padding:12px 14px;font-size:18px}
 .vlist button small{display:block;font-size:13px;opacity:.7}
 .vlist button.on{background:#ffe27a}
+header{transition:transform .25s ease,opacity .25s ease}
+header.hide{transform:translateY(-110%);opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -736,6 +738,8 @@ function parentSheet(){
 }
 
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-say]'); if(b){ e.stopPropagation(); getAC(); speak(b.dataset.say.split(',')); } });
+const hdr=document.querySelector('header');
+addEventListener('scroll',()=>hdr.classList.toggle('hide',scrollY>12),{passive:true});
 home();
 </script>
 </body>
