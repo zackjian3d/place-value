@@ -229,6 +229,12 @@ header h1{font-size:21px;color:var(--line);text-shadow:0 2px 0 #fff}
 .vlist button.on{background:#ffe27a}
 header{transition:transform .25s ease,opacity .25s ease}
 header.hide{transform:translateY(-110%);opacity:0;pointer-events:none}
+
+.ansbox{margin:30px 0 8px;background:#fff;border:3px dashed var(--line);border-radius:24px;padding:12px 10px 16px;position:relative}
+.anslabel{text-align:center;font-size:16px;font-weight:700;margin-bottom:10px}
+.ansbox .opts{display:flex;justify-content:center;gap:14px;margin:0;flex-wrap:wrap}
+.ansbox .opts button{width:86px;height:86px;border-radius:50%;padding:0;font-size:30px;background:#fff7c2}
+.ansbox .opts button.right{background:#bbf7d0}.ansbox .opts button.wrong{background:#fecaca}
 </style>
 </head>
 <body>
@@ -680,7 +686,7 @@ function l5(){
   <div class="progress" id="prog"></div>
   <div class="story"><span class="face">🔍</span><button class="play" data-say="askCount" aria-label="念給我聽">▶</button><span id="q">數數看，這是多少？<b>先數大的，再數小的</b>。</span></div>
   <div id="mat"></div>
-  <div class="opts" id="opts"></div>
+  <div class="ansbox"><div class="anslabel">👇 這些積木合起來是多少？選一個</div><div class="opts" id="opts"></div></div>
   <div class="row"><button class="pill main hidden" id="next">下一題 ▶</button></div>`;
   const m=createMat($('#mat'),{places:3,skin:'blocks',interactive:false,hideDigits:true});
   const prog=()=>$('#prog').innerHTML=Array.from({length:N},(_,i)=>`<i class="${i<r?'ok':i===r?'now':''}"></i>`).join('');
