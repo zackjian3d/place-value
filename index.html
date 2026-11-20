@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>數字住哪裡？個位十位百位</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --o:#f59e0b; --o2:#fff4dc;
+  --t:#16a34a; --t2:#e3f7e9;
+  --h:#2563eb; --h2:#e3ecff;
+  --ink:#3b2f2a; --bg:#fff8ec; --card:#fff;
+  --u:clamp(7px,2.4vw,9px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC",system-ui,sans-serif;touch-action:manipulation}
+button{font-family:inherit;color:inherit;cursor:pointer;border:0}
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 12px 40px}
+header{position:sticky;top:0;z-index:20;background:var(--bg);display:flex;align-items:center;gap:8px;padding:10px 0 8px}
+header h1{flex:1;margin:0;font-size:19px;font-weight:900;text-align:center}
+.iconbtn{width:42px;height:42px;border-radius:14px;background:#fff;box-shadow:0 2px 0 #eadfcf;font-size:20px;display:grid;place-items:center}
+.iconbtn.off{opacity:.45}
+.hidden{display:none!important}
+
+/* home */
+.hero{background:linear-gradient(135deg,#ffe2b8,#ffd0e0);border-radius:22px;padding:18px 16px;margin:4px 0 14px;position:relative;overflow:hidden}
+.hero h2{margin:0 0 6px;font-size:24px;font-weight:900}
+.hero p{margin:0;font-size:15px;line-height:1.5}
+.hero .houses{display:flex;gap:6px;margin-top:12px}
+.hero .houses span{flex:1;text-align:center;border-radius:10px;padding:6px 0;color:#fff;font-weight:900;font-size:15px}
+.lv{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:0 3px 0 #eadfcf}
+.lv:active{transform:translateY(2px);box-shadow:0 1px 0 #eadfcf}
+.lv .n{flex:none;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:24px;font-weight:900;color:#fff}
+.lv b{display:block;font-size:17px}
+.lv small{display:block;font-size:13px;opacity:.7;margin-top:2px;line-height:1.35}
+.lv .st{margin-left:auto;font-size:22px;flex:none}
+.parentbtn{width:100%;background:transparent;border:2px dashed #d8c7b0;border-radius:16px;padding:12px;font-size:15px;margin-top:6px}
+
+/* level */
+.story{background:#fff;border-radius:16px;padding:10px 12px;font-size:15px;line-height:1.5;display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.story .face{font-size:30px;flex:none}
+.mission{background:#fffbe6;border:2px solid #fde68a;border-radius:16px;padding:10px 12px;font-size:15px;line-height:1.5;margin-bottom:10px;min-height:48px}
+.mission b{color:#b45309;margin-right:4px}
+.mission.done{background:#ecfdf3;border-color:#86efac}
+.numbox{background:#fff;border-radius:18px;padding:8px 12px 10px;margin-bottom:10px;text-align:center;position:relative}
+.big{font-size:64px;font-weight:900;line-height:1.05;letter-spacing:2px}
+.big span{display:inline-block}
+.c0{color:var(--o)}.c1{color:var(--t)}.c2{color:var(--h)}
+.say{font-size:16px;margin-top:2px;line-height:1.5}
+.say .c0,.say .c1,.say .c2{font-weight:900}
+.spk{position:absolute;right:8px;top:8px;width:44px;height:44px;border-radius:50%;background:#fff1d6;font-size:20px}
+.row{display:flex;gap:8px;justify-content:center;margin:10px 0}
+.pill{background:#fff;border-radius:999px;padding:10px 16px;font-size:15px;font-weight:700;box-shadow:0 2px 0 #eadfcf}
+.pill.main{background:#f97316;color:#fff;box-shadow:0 3px 0 #c2410c;font-size:17px;padding:12px 22px}
+
+/* mat */
+.mat{display:grid;gap:7px}
+.mat.p3{grid-template-columns:repeat(3,1fr)}
+.mat.p2{grid-template-columns:repeat(2,1fr)}
+.house{background:#fff;border-radius:16px;border:3px solid;display:flex;flex-direction:column;align-items:stretch;overflow:hidden;position:relative}
+.house.h0{border-color:var(--o)}.house.h1{border-color:var(--t)}.house.h2{border-color:var(--h)}
+.roof{color:#fff;font-weight:900;text-align:center;padding:4px 0;font-size:15px}
+.h0 .roof{background:var(--o)}.h1 .roof{background:var(--t)}.h2 .roof{background:var(--h)}
+.h0 .area{background:var(--o2)}.h1 .area{background:var(--t2)}.h2 .area{background:var(--h2)}
+.area{min-height:calc(var(--u)*10 + 52px);display:flex;align-items:flex-end;justify-content:center;padding:6px 4px}
+.skin-straw .area{min-height:100px}
+.digit{text-align:center;font-size:34px;font-weight:900;line-height:1.1;padding:2px 0}
+.h0 .digit{color:var(--o)}.h1 .digit{color:var(--t)}.h2 .digit{color:var(--h)}
+.digit.over{color:#dc2626!important;animation:wob .6s infinite alternate}
+.mat.nodigit .digit{visibility:hidden}
+.btns{display:flex;gap:6px;justify-content:center;padding:0 4px 8px}
+.btns button{height:44px;min-width:44px;border-radius:14px;font-size:22px;font-weight:900;background:#f3ece2;padding:0 8px}
+.btns .plus{color:#fff;flex:1}
+.h0 .plus{background:var(--o)}.h1 .plus{background:var(--t)}.h2 .plus{background:var(--h)}
+.skin-straw .btns .plus{font-size:16px}
+.bind{position:absolute;left:50%;top:34px;transform:translateX(-50%);background:#dc2626;color:#fff;font-weight:900;border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap;z-index:3;animation:pulse 1s infinite}
+
+.pile{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;align-content:flex-end;align-items:flex-end}
+.skin-blocks .pile0{display:grid;grid-template-columns:repeat(3,var(--u));gap:3px}
+.skin-blocks .pile0.many{grid-template-columns:repeat(5,var(--u))}
+.skin-blocks .pile1{max-width:calc((var(--u) + 3px)*10)}
+.skin-blocks .pile2{position:relative;width:100%}
+.skin-straw .pile0{max-width:96px;gap:4px}
+.skin-straw .pile1{gap:5px;max-width:130px}
+
+.item{flex:none}
+.cube{width:var(--u);height:var(--u);background:var(--o);border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2),inset 2px 2px 0 rgba(255,255,255,.35)}
+.rod{width:var(--u);height:calc(var(--u)*10);border-radius:2px;
+  background:repeating-linear-gradient(to bottom,var(--t) 0 calc(var(--u) - 1px),rgba(0,0,0,.28) calc(var(--u) - 1px) var(--u));
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.2),inset 2px 0 0 rgba(255,255,255,.3)}
+.flat{position:absolute;width:calc(var(--u)*10);height:calc(var(--u)*10);border-radius:3px;
+  background:
+   repeating-linear-gradient(to right,transparent 0 calc(var(--u) - 1px),rgba(0,0,0,.22) calc(var(--u) - 1px) var(--u)),
+   repeating-linear-gradient(to bottom,var(--h) 0 calc(var(--u) - 1px),rgba(0,0,0,.22) calc(var(--u) - 1px) var(--u));
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 2px 0 rgba(0,0,0,.15)}
+.straw{width:6px;height:72px;border-radius:3px;background:repeating-linear-gradient(160deg,#f472b6 0 7px,#fff 7px 11px);box-shadow:inset 0 0 0 1px rgba(190,24,93,.35)}
+.bundle{width:30px;height:72px;border-radius:4px;position:relative;
+  background:repeating-linear-gradient(to right,#f9a8d4 0 2px,#ec4899 2px 3px);box-shadow:inset 0 0 0 1px rgba(190,24,93,.4)}
+.bundle i{position:absolute;left:-2px;right:-2px;top:44%;height:9px;background:#dc2626;border-radius:3px}
+.area .rod,.area .flat,.area .bundle{cursor:pointer}
+.ghost{position:fixed!important;margin:0;z-index:60;pointer-events:none;bottom:auto!important}
+.pop{animation:pop .38s ease-out}
+.shake{animation:shake .4s}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.flying-tag{position:fixed;z-index:61;background:#111;color:#fff;font-weight:900;border-radius:999px;padding:6px 12px;font-size:15px;white-space:nowrap;pointer-events:none}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes pulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.1)}}
+@keyframes wob{from{transform:scale(1)}to{transform:scale(1.15)}}
+
+/* level 3 */
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.slot{background:#fff;border-radius:16px;border:3px solid;height:128px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow:hidden;cursor:pointer}
+.slot .roof{width:100%}
+.slot .in{flex:1;display:grid;place-items:center;width:100%}
+.slot.s0{border-color:var(--o)}.slot.s1{border-color:var(--t)}.slot.s2{border-color:var(--h)}
+.slot.s0 .roof{background:var(--o)}.slot.s1 .roof{background:var(--t)}.slot.s2 .roof{background:var(--h)}
+.card{width:64px;height:76px;border-radius:14px;background:#fff;box-shadow:0 4px 0 rgba(0,0,0,.15),inset 0 0 0 3px currentColor;display:grid;place-items:center;font-size:52px;font-weight:900}
+.zero{width:64px;height:76px;border-radius:14px;border:3px dashed #cbbfae;display:grid;place-items:center;font-size:46px;font-weight:900;color:#b8aa97}
+.digits{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 10px}
+.digits button{width:44px;height:44px;border-radius:12px;background:#fff;font-size:22px;font-weight:900;box-shadow:0 2px 0 #eadfcf}
+.digits button.on{background:#3b2f2a;color:#fff}
+.hint{font-size:13px;text-align:center;opacity:.7;margin:4px 0}
+
+/* quiz */
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.opts button{background:#fff;border-radius:16px;padding:14px 0;font-size:32px;font-weight:900;box-shadow:0 3px 0 #eadfcf}
+.opts button.right{background:#bbf7d0}
+.opts button.wrong{background:#fecaca}
+.progress{display:flex;gap:5px;justify-content:center;margin:4px 0 8px}
+.progress i{width:12px;height:12px;border-radius:50%;background:#e9dccb}
+.progress i.ok{background:#22c55e}
+.progress i.now{background:#f97316}
+
+/* toast + sheet */
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(30px);background:#3b2f2a;color:#fff;padding:12px 18px;border-radius:16px;font-size:16px;font-weight:700;opacity:0;transition:.25s;z-index:80;max-width:92vw;text-align:center;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sheet{position:fixed;inset:0;background:rgba(40,30,20,.45);z-index:90;display:flex;align-items:flex-end;justify-content:center}
+.sheet .in{background:#fff;max-width:480px;width:100%;max-height:86vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px 30px;font-size:15px;line-height:1.65}
+.sheet h3{margin:14px 0 4px;font-size:17px}
+.sheet h2{margin:0 0 4px}
+.sheet a{color:#c2410c}
+.conf{position:fixed;width:10px;height:14px;border-radius:2px;top:-20px;z-index:70;pointer-events:none}
+
+/* ===== 童趣版 ===== */
+:root{--line:#4a3426}
+html,body{font-family:"Huninn","Noto Sans TC",system-ui,sans-serif}
+body{background:linear-gradient(#a9dcff 0,#d6f0ff 260px,#fff6e0 620px,#fff6e0 100%);background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+   radial-gradient(28px 18px at 12% 7%,#fff 98%,transparent),radial-gradient(22px 16px at 17% 5.5%,#fff 98%,transparent),radial-gradient(26px 17px at 21% 7.5%,#fff 98%,transparent),
+   radial-gradient(30px 18px at 78% 12%,#fff 98%,transparent),radial-gradient(22px 15px at 84% 10.5%,#fff 98%,transparent),radial-gradient(26px 16px at 89% 12.5%,#fff 98%,transparent);
+  opacity:.9;animation:drift 18s ease-in-out infinite alternate}
+body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:26px;pointer-events:none;z-index:0;
+  background:radial-gradient(18px 14px at 18px 26px,#7ccf5b 98%,transparent) 0 0/36px 26px repeat-x,linear-gradient(transparent 60%,#7ccf5b 60%)}
+@keyframes drift{to{transform:translateX(18px)}}
+.app{position:relative;z-index:1;padding-bottom:60px}
+header{background:transparent}
+header h1{font-size:21px;color:var(--line);text-shadow:0 2px 0 #fff}
+.iconbtn{border:3px solid var(--line);box-shadow:0 4px 0 var(--line);border-radius:16px;background:#ffe27a}
+.iconbtn:active,.lv:active,.pill:active,.btns button:active,.digits button:active,.opts button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.hero{border:3px solid var(--line);box-shadow:0 6px 0 var(--line);background:linear-gradient(135deg,#ffd27a,#ff9ec4)}
+.hero h2{font-size:25px}
+.hero .houses span{border:3px solid var(--line);border-radius:12px 12px 8px 8px;position:relative;margin-top:14px}
+.hero .houses span::before{content:"";position:absolute;left:-6px;right:-6px;bottom:100%;height:16px;background:var(--line);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.lv{border:3px solid var(--line);box-shadow:0 5px 0 var(--line);border-radius:20px}
+.lv:nth-of-type(odd){transform:rotate(-.8deg)}.lv:nth-of-type(even){transform:rotate(.8deg)}
+.lv .n{border:3px solid var(--line);border-radius:50%;width:52px;height:52px;font-size:26px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18)}
+.lv b{font-size:19px}
+.lv .st{animation:wig 1.2s ease-in-out infinite alternate}
+.parentbtn{border-color:var(--line);background:#ffffffaa}
+.story,.mission,.numbox{border:3px solid var(--line);box-shadow:0 4px 0 var(--line);border-radius:20px}
+.story .face{font-size:36px;animation:wig 1.4s ease-in-out infinite alternate;display:inline-block}
+.mission{background:#fff7c2}
+.mission>b:first-child{background:#ff8a3d;color:#fff;border-radius:999px;padding:1px 9px;margin-right:6px;border:2px solid var(--line)}
+.mission b+b,.mission b ~ b{color:#e5531a;background:none;border:0;padding:0;margin:0}
+.digits{gap:4px;flex-wrap:nowrap}.digits button{width:34px;font-size:20px}
+.mission.done{background:#d5f8e0}
+.big{font-size:72px;-webkit-text-stroke:3px var(--line);paint-order:stroke fill;text-shadow:0 5px 0 var(--line)}
+.spk{border:3px solid var(--line);box-shadow:0 3px 0 var(--line);background:#ffe27a}
+.pill{border:3px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.pill.main{background:#ff7a2f;box-shadow:0 5px 0 var(--line);animation:bob 1s ease-in-out infinite alternate}
+.mat{gap:8px;padding-top:24px}
+.house{border:3px solid var(--line)!important;border-radius:6px 6px 18px 18px;overflow:visible;box-shadow:0 5px 0 var(--line)}
+.house .roof{position:relative;border-bottom:3px solid var(--line);font-size:16px;padding:5px 0 4px;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.house .roof::before{content:"";position:absolute;left:-12px;right:-12px;bottom:calc(100% + 1px);height:24px;background:var(--line);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.house .roof::after{content:"";position:absolute;left:-6px;right:-6px;bottom:calc(100% + 1px);height:19px;clip-path:polygon(50% 0,100% 100%,0 100%);background:inherit}
+.house .area{border-radius:0}
+.house .btns{padding-bottom:10px}
+.btns button{border:3px solid var(--line);box-shadow:0 4px 0 var(--line);border-radius:16px}
+.house .digit{-webkit-text-stroke:2px var(--line);paint-order:stroke fill;font-size:36px}
+.bind{border:3px solid var(--line)}
+.slot{border:3px solid var(--line)!important;box-shadow:0 5px 0 var(--line);border-radius:6px 6px 18px 18px;overflow:visible;margin-top:20px}
+.slot .roof{position:relative;border-bottom:3px solid var(--line);border-radius:3px 3px 0 0}
+.slot .roof::before{content:"";position:absolute;left:-12px;right:-12px;bottom:calc(100% + 1px);height:22px;background:var(--line);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.slot .roof::after{content:"";position:absolute;left:-6px;right:-6px;bottom:calc(100% + 1px);height:17px;clip-path:polygon(50% 0,100% 100%,0 100%);background:inherit}
+.slot.s0 .roof::after{background:var(--o)}.slot.s1 .roof::after{background:var(--t)}.slot.s2 .roof::after{background:var(--h)}
+.card{border:3px solid var(--line);box-shadow:0 5px 0 var(--line);-webkit-text-stroke:2px var(--line);paint-order:stroke fill}
+.digits button,.opts button{border:3px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.opts button{font-size:36px;-webkit-text-stroke:2px var(--line);paint-order:stroke fill}
+.progress i{border:2px solid var(--line);width:14px;height:14px}
+#toast{border:3px solid #fff;font-size:18px;background:#ff7a2f;box-shadow:0 5px 0 var(--line)}
+.flying-tag{border:3px solid #fff;background:#ff4f8b;font-size:16px;box-shadow:0 4px 0 var(--line)}
+.sheet .in{border-top:4px solid var(--line)}
+/* 吉祥物：小方 */
+.buddy{position:absolute;left:10px;top:10px;width:46px;height:46px;border-radius:12px;background:linear-gradient(#ffc24a,#f59e0b);border:3px solid var(--line);box-shadow:0 3px 0 var(--line)}
+.buddy i{position:absolute;top:13px;width:7px;height:9px;background:var(--line);border-radius:50%;animation:blink 4s infinite}
+.buddy i:nth-child(1){left:10px}.buddy i:nth-child(2){right:10px}
+.buddy b{position:absolute;left:50%;top:24px;width:14px;height:7px;margin-left:-7px;border:3px solid var(--line);border-top:0;border-radius:0 0 10px 10px}
+.buddy::before,.buddy::after{content:"";position:absolute;top:24px;width:7px;height:4px;border-radius:50%;background:#ff7aa8;opacity:.8}
+.buddy::before{left:4px}.buddy::after{right:4px}
+.buddy.hop{animation:hop .35s}
+.buddy.spin{animation:spin .8s}
+.buddy.sad{animation:shake .4s}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@keyframes hop{50%{transform:translateY(-14px) scale(1.05,.95)}}
+@keyframes spin{50%{transform:translateY(-22px) rotate(180deg) scale(1.15)}100%{transform:rotate(360deg)}}
+@keyframes wig{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+@keyframes bob{to{transform:translateY(-3px)}}
+
+.play{flex:none;width:38px;height:38px;border-radius:50%;background:#ff7a2f;color:#fff;font-size:16px;border:3px solid var(--line);box-shadow:0 3px 0 var(--line);display:inline-grid;place-items:center;vertical-align:middle;margin-right:8px;padding:0 0 0 3px}
+.play:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.mission{display:block}.mission .play{float:left;margin:0 8px 0 0}
+.vlist{display:grid;gap:10px;margin:12px 0}
+.vlist button{text-align:left;background:#fff;border:3px solid var(--line);box-shadow:0 4px 0 var(--line);border-radius:16px;padding:12px 14px;font-size:18px}
+.vlist button small{display:block;font-size:13px;opacity:.7}
+.vlist button.on{background:#ffe27a}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <button class="iconbtn" id="back" aria-label="回首頁">🏠</button>
+    <h1 id="title">數字住哪裡？</h1>
+    <button class="iconbtn" id="snd" aria-label="聲音開關">🔊</button>
+  </header>
+  <main id="view"></main>
+</div>
+<div id="fx"></div>
+<div id="toast"></div>
+<div class="sheet hidden" id="voiceSheet"><div class="in">
+  <h2>選聲音</h2>
+  <div class="vlist">
+    <button data-v="C">🎈 小藝<small>活潑、像卡通（預設）</small></button>
+    <button data-v="A">🌸 曉臻<small>台灣口音、溫柔</small></button>
+    <button data-v="tts">📱 手機內建聲音<small>不用下載，但比較像機器</small></button>
+    <button data-v="off">🔇 關閉聲音</button>
+  </div>
+  <div class="row"><button class="pill main" id="vclose">好了</button></div>
+</div></div>
+
+<script type="application/json" id="phr">{
+"bind1":"哇！十根，綁成一捆了！",
+"merge0":"哇！十個一，變成一個十了！",
+"merge1":"哇！十個十，變成一個百了！",
+"allDone":"全部完成！你好棒喔！",
+"st1":"熊熊開了吸管店。一根一根數太慢了，所以，每十根就綁成一捆！",
+"st2":"橘色小方塊是一。十個黏在一起，變成綠色長條，是十。十條拼起來，變成藍色大片，是一百。",
+"st3":"同一個數字，住在越左邊的房間，就越大喔！點一下房間，把數字卡搬過去。",
+"m1_1":"一直按「加一根」，放到十根，看看會發生什麼事？",
+"m1_2":"請你做出二十三根。要幾捆？幾根呢？",
+"m1_3":"點一下一捆吸管，把它拆開。數數看，是不是十根？",
+"m1_4":"把它們綁回去，然後做出五十根。",
+"m2_1":"一直按個位的加號，放到十個小方塊，看看它們會變成什麼？",
+"m2_2":"做出九十九，然後再按一下個位的加號，看看連鎖變身！",
+"m2_3":"點一片藍色大片，把它拆開。是不是變成十條？",
+"m2_4":"請你做出三百零五。十位要空著喔！",
+"m2_5":"請你做出一百二十。",
+"m3_1":"把三搬到百位，它會變成多少呢？",
+"m3_2":"再把三搬到十位看看。",
+"m3_3":"請你做出五百。先選數字，再點房間。",
+"m3_4":"請你做出八十。",
+"m3_5":"請你做出七。",
+"make":"請你做出",
+"right":"答對了！",
+"is":"就是",
+"over":"數量對了！可是有房間超過九個，要綁起來喔！",
+"l4done":"五題全對！太厲害了！",
+"askCount":"數數看，這是多少？先數大的，再數小的。",
+"tryAgain":"再數數看喔！藍色大片是一百，綠色長條是十，橘色小方塊是一。",
+"l5done":"六題全部完成！你是位值小達人！",
+"hello":"嗨！我是小方。我們一起來玩數字的遊戲吧！"
+}</script>
+<script>
+/* ---------- 小工具 ---------- */
+const $=s=>document.querySelector(s);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const fx=$('#fx');
+const ZH='零一二三四五六七八九';
+function zh(n){
+  if(n===0) return '零';
+  const h=Math.floor(n/100),t=Math.floor(n/10)%10,o=n%10;let s='';
+  if(h) s+=ZH[h]+'百';
+  if(t) s+=(t===1&&!h?'':ZH[t])+'十';
+  else if(h&&o) s+='零';
+  if(o) s+=ZH[o];
+  return s;
+}
+const cnt=n=>n===2?'兩':zh(n);
+/* ---------- 聲音設定：C=小藝（預設） A=曉臻 tts=手機內建 off=關閉 ---------- */
+let voiceId='C';
+try{ voiceId=localStorage.getItem('pv_voice')||'C'; }catch(e){}
+let soundOn=voiceId!=='off';
+function setSnd(){ $('#snd').classList.toggle('off',!soundOn); $('#snd').textContent=soundOn?'🔊':'🔇'; }
+setSnd();
+
+/* 句子片段 → 文字（手機內建聲音、或錄音還沒載好時用） */
+const PHR=JSON.parse($('#phr').textContent);
+const PLACE_NAME=['個位','十位','百位'];
+function segText(k){ if(PHR[k]) return PHR[k]; let m;
+  if((m=k.match(/^n(\d+)$/))) return zh(+m[1]);
+  if((m=k.match(/^d(\d)_(\d)$/))) return ZH[+m[1]]+'，住在'+PLACE_NAME[+m[2]]+'，是';
+  if((m=k.match(/^h(百|十|個)(\d+)$/))) return m[1]+'位放'+cnt(+m[2])+{百:'片',十:'條',個:'個'}[m[1]];
+  if((m=k.match(/^k(.+?)(\d+)$/))) return cnt(+m[2])+m[1];
+  return k; }
+
+/* 錄好的人聲 */
+let clips={}, bufCache={}, loadedVoice=null;
+async function loadVoice(id){
+  if(id==='tts'||id==='off'||loadedVoice===id) return;
+  loadedVoice=id; clips={}; bufCache={};
+  for(const part of ['core','num']){
+    try{ const r=await fetch(`voice_${id}_${part}.json`); if(!r.ok) throw 0; const j=await r.json(); if(loadedVoice!==id) return; Object.assign(clips,j); }catch(e){}
+  }
+}
+function getAC(){ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') ac.resume().catch(()=>{}); return ac; }
+async function getBuf(k){ if(bufCache[k]) return bufCache[k];
+  const bin=Uint8Array.from(atob(clips[k]),c=>c.charCodeAt(0));
+  const b=await new Promise((ok,no)=>getAC().decodeAudioData(bin.buffer,ok,no)); bufCache[k]=b; return b; }
+let playing=[], speakId=0;
+function stopSpeak(){ speakId++; playing.forEach(s=>{try{s.stop()}catch(e){}}); playing=[]; try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){} }
+let zhVoice=null;
+function pickVoice(){ if(!window.speechSynthesis) return; const vs=speechSynthesis.getVoices();
+  zhVoice=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh[-_](HK|CN)|cmn/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null; }
+if(window.speechSynthesis){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function ttsSpeak(t){ if(!window.speechSynthesis) return; try{ const u=new SpeechSynthesisUtterance(t); u.lang='zh-TW'; if(zhVoice) u.voice=zhVoice; u.rate=.95; speechSynthesis.speak(u);}catch(e){} }
+async function speak(segs){
+  if(!soundOn) return; if(!Array.isArray(segs)) segs=[segs];
+  stopSpeak(); const id=++speakId;
+  if(voiceId==='tts'||!segs.every(k=>clips[k])){ ttsSpeak(segs.map(segText).join('，')); return; }
+  try{
+    const bufs=[]; for(const k of segs){ bufs.push(await getBuf(k)); if(id!==speakId) return; }
+    const a=getAC(); let t=a.currentTime+.04;
+    for(const b of bufs){ const s=a.createBufferSource(); s.buffer=b; s.connect(a.destination); s.start(t); playing.push(s); t+=b.duration+.1; }
+  }catch(e){ ttsSpeak(segs.map(segText).join('，')); }
+}
+let speakTimer=null;
+function speakSoon(t,ms=650){ clearTimeout(speakTimer); speakTimer=setTimeout(()=>speak(t),ms); }
+
+/* 選聲音 */
+const vs=$('#voiceSheet');
+function markVoice(){ vs.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===voiceId)); }
+$('#snd').onclick=()=>{ markVoice(); vs.classList.remove('hidden'); };
+vs.onclick=e=>{ const b=e.target.closest('[data-v]');
+  if(b){ voiceId=b.dataset.v; soundOn=voiceId!=='off'; try{localStorage.setItem('pv_voice',voiceId)}catch(e){}
+    setSnd(); markVoice(); stopSpeak(); loadVoice(voiceId).then(()=>speak('hello')); getAC(); return; }
+  if(e.target===vs||e.target.id==='vclose') vs.classList.add('hidden'); };
+loadVoice(voiceId);
+
+/* 音效 */
+let ac=null;
+function tone(f,d,type='sine',vol=.18,when=0,f2){ if(!soundOn) return; try{
+  ac=ac||new (window.AudioContext||window.webkitAudioContext)(); const t=ac.currentTime+when;
+  const o=ac.createOscillator(),g=ac.createGain(); o.type=type; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+d);}catch(e){} }
+function buddy(c){ document.querySelectorAll('.buddy').forEach(b=>{ b.classList.remove('hop','spin','sad'); void b.offsetWidth; b.classList.add(c); }); }
+function sfx(k){
+  if(k==='tap'||k==='minus'||k==='land') buddy('hop'); if(k==='bind'||k==='good') buddy('spin'); if(k==='bad') buddy('sad');
+  if(k==='tap') tone(660,.09,'triangle');
+  if(k==='minus') tone(420,.1,'triangle');
+  if(k==='bind'){tone(523,.12,'square',.08);tone(659,.12,'square',.08,.08);tone(784,.2,'square',.08,.16);}
+  if(k==='land') tone(300,.18,'sine',.22,0,620);
+  if(k==='pop') tone(900,.15,'sine',.15,0,250);
+  if(k==='good'){[523,659,784,1047].forEach((f,i)=>tone(f,.18,'triangle',.16,i*.09));}
+  if(k==='bad') tone(180,.25,'sawtooth',.08);
+}
+let toastT=null;
+function toast(t,ms=2200){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),ms); }
+function shake(el){ el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); sfx('bad'); }
+function confetti(n=46){ const cs=['#f59e0b','#16a34a','#2563eb','#ec4899','#facc15','#a855f7'];
+  for(let i=0;i<n;i++){ const d=document.createElement('div'); d.className='conf'; d.style.left=Math.random()*100+'vw'; d.style.background=cs[i%cs.length];
+    document.body.appendChild(d); const x=(Math.random()-.5)*160, r=Math.random()*720;
+    d.animate([{transform:'translate(0,0) rotate(0)'},{transform:`translate(${x}px,${innerHeight+40}px) rotate(${r}deg)`}],{duration:1400+Math.random()*1200,delay:Math.random()*300,easing:'cubic-bezier(.2,.6,.4,1)'}).finished.then(()=>d.remove()); } }
+function cheer(text){ sfx('good'); confetti(); if(text){toast(text);} }
+
+/* 星星 */
+let stars={};
+try{stars=JSON.parse(localStorage.getItem('pv_stars')||'{}')}catch(e){}
+function giveStar(k){ stars[k]=1; try{localStorage.setItem('pv_stars',JSON.stringify(stars))}catch(e){} }
+
+function numHTML(v){ const s=String(v),n=s.length; return [...s].map((ch,i)=>`<span class="c${n-1-i}">${ch}</span>`).join(''); }
+
+/* ---------- 積木墊（核心元件） ---------- */
+function mkItem(skin,p){ const d=document.createElement('div');
+  d.className='item '+(skin==='straw'?['straw','bundle'][p]:['cube','rod','flat'][p]);
+  if(skin==='straw'&&p===1) d.innerHTML='<i></i>'; return d; }
+function placeAt(el,r){ el.style.left=r.left+'px'; el.style.top=r.top+'px'; }
+function box(rs){ const l=Math.min(...rs.map(r=>r.left)),R=Math.max(...rs.map(r=>r.right)),t=Math.min(...rs.map(r=>r.top)),b=Math.max(...rs.map(r=>r.bottom)); return {cx:(l+R)/2,cy:(t+b)/2}; }
+function tag(text,x,y){ const t=document.createElement('div'); t.className='flying-tag'; t.textContent=text; document.body.appendChild(t);
+  t.style.left=Math.max(6,Math.min(innerWidth-t.offsetWidth-6,x-t.offsetWidth/2))+'px'; t.style.top=(y-60)+'px';
+  t.animate([{opacity:0,transform:'translateY(10px) scale(.8)'},{opacity:1,transform:'none',offset:.2},{opacity:1,offset:.8},{opacity:0,transform:'translateY(-14px)'}],{duration:1500}).finished.then(()=>t.remove()); }
+
+function createMat(root,opt){
+  const P=opt.places, skin=opt.skin;
+  const m={counts:new Array(P).fill(0),busy:false};
+  root.innerHTML=''; root.className='mat p'+P+' skin-'+skin+(opt.hideDigits?' nodigit':'');
+  m.houses=[];
+  for(let p=P-1;p>=0;p--){
+    const h=document.createElement('div'); h.className='house h'+p;
+    h.innerHTML=`<div class="roof">${(opt.labels||PLACE_NAME)[p]}</div><div class="area"></div><div class="digit">0</div>`+
+      (opt.interactive?`<div class="btns"><button class="minus" aria-label="拿走一個">−</button><button class="plus">${(opt.plusLabels||['+','+','+'])[p]}</button></div><button class="bind hidden">綁起來！</button>`:'');
+    root.appendChild(h); m.houses[p]=h;
+    if(opt.interactive){
+      h.querySelector('.plus').onclick=()=>m.add(p);
+      h.querySelector('.minus').onclick=()=>m.sub(p);
+      h.querySelector('.bind').onclick=()=>m.merge(p);
+      h.querySelector('.area').addEventListener('click',e=>{ const it=e.target.closest('.item'); if(it&&p>0) m.breakItem(p,it); });
+    }
+  }
+  const area=p=>m.houses[p].querySelector('.area');
+  m.value=()=>m.counts.reduce((s,c,p)=>s+c*10**p,0);
+  m.canon=()=>m.counts.every(c=>c<=9);
+  m.max=10**P-1;
+  const myGen=gen;
+  const emit=(type,p)=>{ if(myGen===gen&&opt.onEvent) opt.onEvent(type,m,p); };
+  m.render=p=>{
+    const a=area(p),c=m.counts[p]; a.innerHTML='';
+    const pile=document.createElement('div'); pile.className='pile pile'+p+(c>10?' many':'');
+    for(let i=0;i<c;i++){ const it=mkItem(skin,p);
+      if(skin==='blocks'&&p===2){ it.style.left=`calc(50% - var(--u)*5 + ${i*3-12}px)`; it.style.bottom=(i*5)+'px'; }
+      pile.appendChild(it); }
+    if(skin==='blocks'&&p===2) pile.style.height=`calc(var(--u)*10 + ${Math.max(0,c-1)*5}px)`;
+    a.appendChild(pile);
+    const d=m.houses[p].querySelector('.digit'); d.textContent=c; d.classList.toggle('over',c>9);
+    const b=m.houses[p].querySelector('.bind'); if(b) b.classList.toggle('hidden',!(c>9&&p<P-1));
+  };
+  m.set=arr=>{ arr.forEach((c,p)=>m.counts[p]=c); for(let p=0;p<P;p++) m.render(p); };
+  m.add=p=>{
+    if(m.busy) return;
+    if(m.value()+10**p>m.max){ shake(m.houses[p]); toast('最多只能到 '+m.max+' 喔！'); return; }
+    m.counts[p]++; m.render(p); sfx('tap');
+    const its=area(p).querySelectorAll('.item'); its[its.length-1].classList.add('pop');
+    emit('change',p);
+    if(m.counts[p]>=10&&p<P-1){ m.busy=true; setTimeout(()=>{m.busy=false;m.merge(p);},380); }
+  };
+  m.sub=p=>{
+    if(m.busy) return;
+    if(m.counts[p]===0){ shake(m.houses[p]);
+      if(m.counts.some((c,q)=>q>p&&c>0)) toast('這裡空了！點一下左邊的大東西，可以拆開喔');
+      return; }
+    m.counts[p]--; m.render(p); sfx('minus'); emit('change',p);
+  };
+  m.merge=async p=>{
+    if(m.busy||m.counts[p]<10||p>=P-1) return;
+    m.busy=true;
+    const items=[...area(p).querySelectorAll('.item')].slice(0,10);
+    const rs=items.map(e=>e.getBoundingClientRect()); const {cx,cy}=box(rs);
+    const clones=items.map((e,i)=>{ const g=mkItem(skin,p); g.classList.add('ghost'); placeAt(g,rs[i]); fx.appendChild(g); e.style.visibility='hidden'; return g; });
+    await Promise.all(clones.map((g,i)=>{ const r=rs[i]; let tx,ty;
+      if(skin==='blocks'){ tx=cx-r.width/2; ty=cy-5*r.height+i*r.height; }
+      else { tx=cx-15+i*3; ty=cy-r.height/2; }
+      return g.animate([{transform:'translate(0,0)'},{transform:`translate(${tx-r.left}px,${ty-r.top}px)`}],{duration:460,delay:i*30,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'}).finished; }));
+    clones.forEach(g=>g.remove()); sfx('bind');
+    m.counts[p]-=10; m.render(p);
+    const big=mkItem(skin,p+1); big.classList.add('ghost'); fx.appendChild(big);
+    const bw=big.offsetWidth,bh=big.offsetHeight; big.style.left=(cx-bw/2)+'px'; big.style.top=(cy-bh/2)+'px';
+    tag(opt.mergeText?opt.mergeText(p):'10 個變 1 個！',cx,cy-bh/2);
+    await big.animate([{transform:'scale(.4)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:420}).finished;
+    await wait(380);
+    m.counts[p+1]++; m.render(p+1);
+    const ts=area(p+1).querySelectorAll('.item'), tg=ts[ts.length-1]; tg.style.visibility='hidden';
+    const tr=tg.getBoundingClientRect(), br=big.getBoundingClientRect();
+    await big.animate([{transform:'translate(0,0)'},{transform:`translate(${tr.left-br.left}px,${tr.top-br.top-30}px)`,offset:.6},{transform:`translate(${tr.left-br.left}px,${tr.top-br.top}px)`}],{duration:620,easing:'ease-in-out',fill:'forwards'}).finished;
+    big.remove(); tg.style.visibility=''; tg.classList.add('pop'); sfx('land');
+    m.busy=false; emit('change',p+1); emit('merge',p);
+    if(myGen!==gen) return;
+    if(m.counts[p+1]>=10&&p+1<P-1){ await wait(250); m.merge(p+1); }
+    else if(m.counts[p]>=10){ await wait(250); m.merge(p); }
+  };
+  m.breakItem=async(p,it)=>{
+    if(m.busy) return; m.busy=true;
+    const r=it.getBoundingClientRect();
+    const big=mkItem(skin,p); big.classList.add('ghost'); placeAt(big,r); fx.appendChild(big);
+    m.counts[p]--; m.counts[p-1]+=10; m.render(p); m.render(p-1);
+    const news=[...area(p-1).querySelectorAll('.item')].slice(-10); news.forEach(e=>e.style.visibility='hidden');
+    const {cx,cy}=box(news.map(e=>e.getBoundingClientRect()));
+    sfx('pop'); tag(opt.breakText?opt.breakText(p):'拆開！',r.left+r.width/2,r.top);
+    await big.animate([{transform:'translate(0,0)'},{transform:`translate(${cx-r.width/2-r.left}px,${cy-r.height/2-r.top}px)`}],{duration:520,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).finished;
+    await big.animate([{transform:`translate(${cx-r.width/2-r.left}px,${cy-r.height/2-r.top}px) scale(1)`,opacity:1},{transform:`translate(${cx-r.width/2-r.left}px,${cy-r.height/2-r.top}px) scale(1.5)`,opacity:0}],{duration:220,fill:'forwards'}).finished;
+    big.remove();
+    news.forEach((e,i)=>setTimeout(()=>{e.style.visibility='';e.classList.add('pop');tone(500+i*40,.06,'triangle',.08)},i*45));
+    await wait(500);
+    m.busy=false; emit('change',p-1); emit('break',p);
+  };
+  for(let p=0;p<P;p++) m.render(p);
+  return m;
+}
+
+/* 任務列 */
+function missions(el,list,key){
+  let i=0; const myGen=gen; const K=j=>'m'+key.slice(1)+'_'+(j+1);
+  const draw=()=>{ if(i<list.length){ el.className='mission'; el.innerHTML=`<button class="play" data-say="${K(i)}" aria-label="念題目">▶</button><b>任務 ${i+1}/${list.length}</b>${list[i].t}`; }
+    else { el.className='mission done'; el.innerHTML='🌟 全部完成！拿到一顆星星。現在可以自由玩，或回首頁挑下一關。'; } };
+  draw();
+  return { check(...a){ if(i<list.length&&list[i].ok(...a)){ i++; setTimeout(()=>{ if(myGen!==gen) return; cheer(i<list.length?'任務完成！':'太厲害了！'); draw();
+        if(i===list.length){ giveStar(key); speak('allDone'); } else speakSoon(K(i),900); },450); } },
+    say(){ if(i<list.length) speak(K(i)); } };
+}
+
+/* ---------- 畫面 ---------- */
+const view=$('#view');
+let gen=0;
+function newScreen(){ gen++; clearTimeout(speakTimer); fx.innerHTML=''; document.querySelectorAll('.flying-tag,.sheet:not(#voiceSheet)').forEach(e=>e.remove()); stopSpeak(); }
+const LEVELS=[
+  {k:'l1',color:'#ec4899',t:'綁吸管',d:'10 根綁成 1 捆，數起來超快'},
+  {k:'l2',color:'#16a34a',t:'積木變身',d:'10 個小方塊變成 1 條，10 條變成 1 片'},
+  {k:'l3',color:'#2563eb',t:'數字搬家',d:'同一個 3，住在不同房間就不一樣大'},
+  {k:'l4',color:'#f97316',t:'做出數字',d:'聽題目，用積木把數字做出來'},
+  {k:'l5',color:'#a855f7',t:'猜猜是多少',d:'看積木，選出正確的數字'},
+];
+function home(){
+  newScreen();
+  $('#title').textContent='數字住哪裡？'; $('#back').style.visibility='hidden';
+  view.innerHTML=`
+  <div class="hero"><h2>每個數字都有自己的房間 🏠</h2>
+    <p>滿 10 個，就綁在一起，搬到左邊的房間。<br>一關一關玩，每關大約 5 分鐘。</p>
+    <div class="houses"><span style="background:var(--h)">百位</span><span style="background:var(--t)">十位</span><span style="background:var(--o)">個位</span></div></div>
+  ${LEVELS.map((L,i)=>`<button class="lv" data-k="${L.k}"><span class="n" style="background:${L.color}">${i+1}</span><span><b>${L.t}</b><small>${L.d}</small></span><span class="st">${stars[L.k]?'⭐':''}</span></button>`).join('')}
+  <button class="parentbtn" id="pp">👨‍👧 給爸媽：這個遊戲用的教法、怎麼陪玩</button>`;
+  view.querySelectorAll('.lv').forEach(b=>b.onclick=()=>{ sfx('tap'); go(b.dataset.k); });
+  $('#pp').onclick=parentSheet;
+}
+function go(k){ newScreen(); window.scrollTo(0,0); $('#back').style.visibility='visible'; ({l1,l2,l3,l4,l5})[k](); }
+$('#back').onclick=()=>{ sfx('tap'); home(); window.scrollTo(0,0); };
+
+/* 第 1 關：綁吸管 */
+function l1(){
+  $('#title').textContent='第 1 關・綁吸管';
+  view.innerHTML=`
+  <div class="story"><span class="face">🐻</span><button class="play" data-say="st1" aria-label="念給我聽">▶</button><span>熊熊開了吸管店。一根一根數太慢了，所以<b>每 10 根就綁成 1 捆</b>！</span></div>
+  <div class="mission" id="ms"></div>
+  <div class="numbox"><div class="buddy"><i></i><i></i><b></b></div><button class="spk" id="spk">🔊</button><div class="big" id="big">0</div><div class="say" id="say"></div></div>
+  <div id="mat"></div>
+  <div class="row"><button class="pill" id="reset">🔄 全部清空</button></div>
+  <p class="hint">小提示：點一下「一捆」，可以把它拆開喔</p>`;
+  const say=m=>{ const [o,t]=m.counts, v=m.value();
+    $('#big').innerHTML=numHTML(v);
+    $('#say').innerHTML=`<span class="c1">${t} 捆</span> 和 <span class="c0">${o} 根</span>，總共 ${v} 根`;
+    return ['n'+v,'k捆'+t,'k根'+o]; };
+  const ms=missions($('#ms'),[
+    {t:'一直按「＋1根」，放到 10 根，看看會發生什麼事？'},
+    {t:'做出 <b>23</b> 根：要幾捆？幾根？',say:'做出二十三根'},
+    {t:'點一下一捆吸管，把它<b>拆開</b>，數數看是不是 10 根？',say:'點一下一捆吸管，把它拆開'},
+    {t:'把它們綁回去，然後做出 <b>50</b> 根',say:'做出五十根'},
+  ].map((x,i)=>({...x,ok:[(e)=>e==='merge',(e,m)=>m.value()===23&&m.canon(),(e)=>e==='break',(e,m)=>m.value()===50&&m.canon()][i]})),'l1');
+  const m=createMat($('#mat'),{places:2,skin:'straw',interactive:true,labels:['個位（根）','十位（捆）'],plusLabels:['＋1根','＋1捆'],
+    mergeText:()=>'10 根 → 1 捆！',breakText:()=>'1 捆 = 10 根',
+    onEvent:(e,m)=>{ const s=say(m); if(e==='change') speakSoon(s); if(e==='merge') speak('bind1'); ms.check(e,m); }});
+  say(m);
+  $('#spk').onclick=()=>speak(say(m));
+  $('#reset').onclick=()=>{ if(m.busy) return; m.set([0,0]); say(m); };
+  setTimeout(()=>ms.say(),400);
+}
+
+/* 第 2 關：積木變身 */
+function l2(){
+  $('#title').textContent='第 2 關・積木變身';
+  view.innerHTML=`
+  <div class="story"><span class="face">🧱</span><button class="play" data-say="st2" aria-label="念給我聽">▶</button><span>橘色<b>小方塊</b>是 1，10 個黏成綠色<b>長條</b>是 10，10 條拼成藍色<b>大片</b>是 100。</span></div>
+  <div class="mission" id="ms"></div>
+  <div class="numbox"><div class="buddy"><i></i><i></i><b></b></div><button class="spk" id="spk">🔊</button><div class="big" id="big">0</div><div class="say" id="say"></div></div>
+  <div id="mat"></div>
+  <div class="row"><button class="pill" id="reset">🔄 全部清空</button></div>
+  <p class="hint">點綠色長條或藍色大片，可以拆開</p>`;
+  const say=m=>{ const [o,t,h]=m.counts, v=m.value();
+    $('#big').innerHTML=numHTML(v);
+    const parts=[]; if(h) parts.push(`<span class="c2">${h*100}</span>`); if(t) parts.push(`<span class="c1">${t*10}</span>`); if(o||!parts.length) parts.push(`<span class="c0">${o}</span>`);
+    $('#say').innerHTML=`<span class="c2">${h} 個百</span>・<span class="c1">${t} 個十</span>・<span class="c0">${o} 個一</span><br>${parts.join(' + ')} = ${v}`;
+    return ['n'+v,'k個百'+h,'k個十'+t,'k個一'+o]; };
+  const ms=missions($('#ms'),[
+    {t:'一直按個位的「＋」，放到 10 個小方塊，看它們變成什麼？',ok:(e,m,p)=>e==='merge'&&p===0},
+    {t:'做出 <b>99</b>，再按一下個位的「＋」，看看連鎖變身！',say:'做出九十九，再加一個看看',ok:(e,m,p)=>e==='merge'&&p===1},
+    {t:'點一片藍色大片，把它拆開，是不是 10 條？',say:'點藍色大片，把它拆開',ok:(e,m,p)=>e==='break'&&p===2},
+    {t:'做出 <b>305</b>（十位要空著喔）',say:'做出三百零五',ok:(e,m)=>e==='change'&&m.value()===305&&m.canon()},
+    {t:'做出 <b>120</b>',say:'做出一百二十',ok:(e,m)=>e==='change'&&m.value()===120&&m.canon()},
+  ],'l2');
+  const names=['10 個一 → 1 個十！','10 個十 → 1 個百！'];
+  const m=createMat($('#mat'),{places:3,skin:'blocks',interactive:true,
+    mergeText:p=>names[p],breakText:p=>p===2?'1 個百 = 10 個十':'1 個十 = 10 個一',
+    onEvent:(e,m,p)=>{ const s=say(m); if(e==='change') speakSoon(s); if(e==='merge') speak('merge'+p); ms.check(e,m,p); }});
+  say(m);
+  $('#spk').onclick=()=>speak(say(m));
+  $('#reset').onclick=()=>{ if(m.busy) return; m.set([0,0,0]); say(m); };
+  setTimeout(()=>ms.say(),400);
+}
+
+/* 第 3 關：數字搬家 */
+function l3(){
+  $('#title').textContent='第 3 關・數字搬家';
+  view.innerHTML=`
+  <div class="story"><span class="face">🏠</span><button class="play" data-say="st3" aria-label="念給我聽">▶</button><span>同一個數字，<b>住在越左邊的房間，就越大</b>。點房間，把數字卡搬過去！</span></div>
+  <div class="mission" id="ms"></div>
+  <div class="slots" id="slots"></div>
+  <div class="digits" id="digits"></div>
+  <div class="numbox"><div class="buddy"><i></i><i></i><b></b></div><button class="spk" id="spk">🔊</button><div class="big" id="big"></div><div class="say" id="say"></div></div>
+  <div id="mat"></div>
+  <p class="hint">空房間要放 0 佔位子，不然 300 就會變成 3 了</p>`;
+  let d=3,p=0;
+  const slots=$('#slots');
+  const mat=createMat($('#mat'),{places:3,skin:'blocks',interactive:false});
+  for(let q=2;q>=0;q--){ const s=document.createElement('div'); s.className='slot s'+q; s.dataset.p=q; s.innerHTML=`<div class="roof">${PLACE_NAME[q]}</div><div class="in"></div>`; slots.appendChild(s); s.onclick=()=>{ if(q!==p){ move(q); } }; }
+  const dg=$('#digits'); for(let k=1;k<=9;k++){ const b=document.createElement('button'); b.textContent=k; b.onclick=()=>{ d=k; sfx('tap'); draw(); upd(); }; dg.appendChild(b); }
+  const val=()=>d*10**p;
+  function draw(){
+    slots.querySelectorAll('.slot').forEach(s=>{ const q=+s.dataset.p, inn=s.querySelector('.in');
+      inn.innerHTML = q===p?`<div class="card c${q}" id="card">${d}</div>`:(q<p?'<div class="zero">0</div>':''); });
+    dg.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i+1===d));
+    const v=val(); $('#big').innerHTML=numHTML(v);
+    const unit=['一','十','百'][p];
+    $('#say').innerHTML=`<span class="c${p}">${d}</span> 住在<span class="c${p}">${PLACE_NAME[p]}</span> → ${d} 個${unit} → <b>${v}</b>`;
+    const c=[0,0,0]; c[p]=d; mat.set(c);
+  }
+  const upd=()=>{ const v=val(); speakSoon(['d'+d+'_'+p,'n'+v],300); ms.check(d,p); };
+  function move(q){
+    const old=$('#card').getBoundingClientRect(); p=q; draw();
+    const c=$('#card'), nw=c.getBoundingClientRect();
+    c.animate([{transform:`translate(${old.left-nw.left}px,${old.top-nw.top}px)`},{transform:`translate(${(old.left-nw.left)/2}px,${(old.top-nw.top)/2-40}px) rotate(-10deg)`},{transform:'none'}],{duration:520,easing:'ease-in-out'});
+    sfx('land'); upd();
+  }
+  const ms=missions($('#ms'),[
+    {t:'把 <b>3</b> 搬到<b>百位</b>，它變成多少？',say:'把三搬到百位',ok:(d,p)=>d===3&&p===2},
+    {t:'再把 3 搬到<b>十位</b>',say:'把三搬到十位',ok:(d,p)=>d===3&&p===1},
+    {t:'做出 <b>500</b>（先選數字，再點房間）',say:'做出五百',ok:(d,p)=>d===5&&p===2},
+    {t:'做出 <b>80</b>',say:'做出八十',ok:(d,p)=>d===8&&p===1},
+    {t:'做出 <b>7</b>',say:'做出七',ok:(d,p)=>d===7&&p===0},
+  ],'l3');
+  draw();
+  $('#spk').onclick=()=>speak(['d'+d+'_'+p,'n'+val()]);
+  setTimeout(()=>ms.say(),400);
+}
+
+/* 第 4 關：做出數字 */
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function l4(){
+  $('#title').textContent='第 4 關・做出數字';
+  const targets=[rnd(12,49),rnd(51,98),rnd(1,9)*100+rnd(1,9)*10+rnd(1,9),rnd(1,9)*100+rnd(1,9),rnd(1,9)*100+rnd(1,9)*10];
+  let r=0, solved=false;
+  view.innerHTML=`
+  <div class="progress" id="prog"></div>
+  <div class="numbox"><div class="buddy"><i></i><i></i><b></b></div><button class="spk" id="spk">🔊</button><div class="say">請用積木做出</div><div class="big" id="big"></div><div class="say" id="fb">&nbsp;</div></div>
+  <div id="mat"></div>
+  <div class="row"><button class="pill" id="hint">💡 提示</button><button class="pill" id="reset">🔄 清空</button><button class="pill main hidden" id="next">下一題 ▶</button></div>`;
+  const prog=()=>$('#prog').innerHTML=targets.map((_,i)=>`<i class="${i<r?'ok':i===r?'now':''}"></i>`).join('');
+  const m=createMat($('#mat'),{places:3,skin:'blocks',interactive:true,mergeText:p=>['10 個一 → 1 個十！','10 個十 → 1 個百！'][p],breakText:p=>p===2?'1 個百 = 10 個十':'1 個十 = 10 個一',
+    onEvent:(e,m)=>{ if(solved||e!=='change') return; const v=m.value(), T=targets[r];
+      $('#fb').innerHTML=`現在是 <b>${v}</b>`;
+      if(v===T&&!m.canon()){ $('#fb').innerHTML='數量對了！但是有房間超過 9 個，要<b>綁起來</b>喔'; speakSoon('over',300); }
+      if(v===T&&m.canon()){ solved=true; const [o,t,h]=m.counts;
+        $('#fb').innerHTML=`答對了！<span class="c2">${h} 個百</span>、<span class="c1">${t} 個十</span>、<span class="c0">${o} 個一</span>`;
+        cheer('答對了！🎉'); speak(['right','n'+T,'is','k個百'+h,'k個十'+t,'k個一'+o]);
+        $('#next').classList.remove('hidden'); $('#next').textContent=r===targets.length-1?'完成 🌟':'下一題 ▶'; } }});
+  function ask(){ solved=false; m.set([0,0,0]); $('#big').innerHTML=numHTML(targets[r]); $('#fb').innerHTML='&nbsp;'; $('#next').classList.add('hidden'); prog(); speak(['make','n'+targets[r]]); }
+  $('#next').onclick=()=>{ r++; if(r>=targets.length){ giveStar('l4'); prog(); view.querySelector('.numbox').innerHTML='<div class="big">🌟</div><div class="say">五題全對！你已經會用積木做數字了</div>'; $('#next').textContent='再玩一次'; $('#next').onclick=()=>go('l4'); confetti(80); speak('l4done'); return; } ask(); };
+  $('#hint').onclick=()=>{ const T=targets[r]; const h=Math.floor(T/100),t=Math.floor(T/10)%10,o=T%10;
+    const s=`百位放 ${h} 片、十位放 ${t} 條、個位放 ${o} 個`; toast(s,3500); speak(['n'+T,'h百'+h,'h十'+t,'h個'+o]); };
+  $('#spk').onclick=()=>speak(['make','n'+targets[r]]);
+  $('#reset').onclick=()=>{ if(!m.busy&&!solved){ m.set([0,0,0]); $('#fb').innerHTML='&nbsp;'; } };
+  ask();
+}
+
+/* 第 5 關：猜猜是多少 */
+function l5(){
+  $('#title').textContent='第 5 關・猜猜是多少';
+  const N=6; let r=0, lock=false;
+  view.innerHTML=`
+  <div class="progress" id="prog"></div>
+  <div class="story"><span class="face">🔍</span><button class="play" data-say="askCount" aria-label="念給我聽">▶</button><span id="q">數數看，這是多少？<b>先數大的，再數小的</b>。</span></div>
+  <div id="mat"></div>
+  <div class="opts" id="opts"></div>
+  <div class="row"><button class="pill main hidden" id="next">下一題 ▶</button></div>`;
+  const m=createMat($('#mat'),{places:3,skin:'blocks',interactive:false,hideDigits:true});
+  const prog=()=>$('#prog').innerHTML=Array.from({length:N},(_,i)=>`<i class="${i<r?'ok':i===r?'now':''}"></i>`).join('');
+  function make(){
+    let h,t,o;
+    if(r<2){ h=0; t=rnd(1,9); o=rnd(1,9); while(t===o) o=rnd(1,9); }
+    else if(r===4){ h=rnd(1,9); t=0; o=rnd(1,9); }
+    else { h=rnd(1,9); t=rnd(1,9); o=rnd(0,9); while(o===t) o=rnd(0,9); }
+    const n=h*100+t*10+o, set=new Set([n]);
+    const cands=h? [o*100+t*10+h, h*100+o*10+t, t*100+h*10+o, h*10+t+o, h*100+t+o*10, n+10, n-10]
+                 : [o*10+t, t+o, t*10+o+10, (t+1)*10+o, t*10+o-1];
+    for(const c of cands){ if(set.size>=3) break; if(c>0&&c<1000&&c!==n) set.add(c); }
+    while(set.size<3) set.add(n+rnd(1,9));
+    return {n,c:[o,t,h],opts:[...set].sort(()=>Math.random()-.5)};
+  }
+  function ask(){
+    lock=false; prog(); const Q=make(); m.set(Q.c); $('#next').classList.add('hidden');
+    $('#q').innerHTML='數數看，這是多少？<b>先數大的，再數小的</b>。';
+    const box=$('#opts'); box.innerHTML='';
+    Q.opts.forEach(v=>{ const b=document.createElement('button'); b.innerHTML=numHTML(v);
+      b.onclick=()=>{ if(lock) return;
+        if(v===Q.n){ lock=true; b.classList.add('right'); m.houses.forEach(h=>h.parentNode.classList.remove('nodigit')); $('#mat').classList.remove('nodigit');
+          const [o,t,h]=Q.c; $('#q').innerHTML=`答對！<span class="c2">${h} 個百</span>、<span class="c1">${t} 個十</span>、<span class="c0">${o} 個一</span> = <b>${Q.n}</b>`;
+          cheer('答對了！'); speak(['right','n'+Q.n]); $('#next').classList.remove('hidden'); $('#next').textContent=r===N-1?'完成 🌟':'下一題 ▶'; }
+        else { b.classList.add('wrong'); shake(b); speak('tryAgain'); }
+      }; box.appendChild(b); });
+    $('#mat').classList.add('nodigit');
+    speak('askCount');
+  }
+  $('#next').onclick=()=>{ r++; if(r>=N){ giveStar('l5'); prog(); $('#q').innerHTML='🌟 六題全部完成！你是位值小達人！'; $('#opts').innerHTML=''; m.set([0,0,0]); $('#next').textContent='再玩一次'; $('#next').onclick=()=>go('l5'); confetti(80); speak('l5done'); return; } ask(); };
+  ask();
+}
+
+/* 給爸媽 */
+function parentSheet(){
+  const s=document.createElement('div'); s.className='sheet';
+  s.innerHTML=`<div class="in">
+  <h2>給爸媽看</h2>
+  <h3>這個遊戲用了哪些教法</h3>
+  <p><b>新加坡數學的 CPA 三步驟</b>：先摸<b>實物</b>（Concrete），再看<b>圖</b>（Pictorial），最後才寫<b>數字</b>（Abstract）。新加坡數學因國際評比名列前茅而出名，位值就是這樣教的。</p>
+  <p><b>吸管綁成捆</b>：美國特教網站 Understood.org 把「用位值板＋吸管捆」列為有實證的位值教法。第 1 關就是它。</p>
+  <p><b>方塊、長條、百片</b>：蒙特梭利的金色串珠、迪恩斯（Dienes）的十進位積木都是這個概念，台灣課本的「百格板、十條、一個」也是。第 2～5 關都用它。</p>
+  <p>關於以色列：我沒有查到以色列有一套特別出名的位值教法。全世界最常被引用、研究最多的，還是新加坡的 CPA。</p>
+  <h3>五關的順序</h3>
+  <p>1 吸管（實物）→ 2 積木變身（滿 10 就換）→ 3 數字搬家（位置決定大小、0 佔位）→ 4 做出數字（數字→實物）→ 5 猜猜是多少（實物→數字）。</p>
+  <h3>怎麼陪玩</h3>
+  <p>・一次玩一兩關，10 分鐘就好。<br>・讓孩子自己按，你只問「為什麼變成一條了？」<br>・玩完拿真的吸管、硬幣或樂高再做一次，回到實物最有效。<br>・最重要的一句話：<b>滿 10 個，就換成 1 個大的，搬到左邊</b>。這也是以後學進位、借位的基礎。</p>
+  <h3>參考</h3>
+  <p><a href="https://www.understood.org/en/articles/place-value-with-straw-bundles-an-evidence-based-math-strategy">Understood：吸管捆教位值</a><br>
+  <a href="https://singaporemathcircle.com/pages/how-singapore-math-uses-the-concrete-pictorial-abstract-approach">新加坡數學 CPA 介紹</a><br>
+  <a href="https://mathsnoproblem.com/blog/teaching-tips/6-strategies-help-pupils-develop-early-understanding-place-value">Maths — No Problem!：位值 6 個策略</a></p>
+  <div class="row"><button class="pill main" id="close">知道了</button></div></div>`;
+  document.body.appendChild(s);
+  s.onclick=e=>{ if(e.target===s||e.target.id==='close') s.remove(); };
+}
+
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-say]'); if(b){ e.stopPropagation(); getAC(); speak(b.dataset.say.split(',')); } });
+home();
+</script>
+</body>
+</html>
