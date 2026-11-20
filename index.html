@@ -378,20 +378,27 @@ async function getBuf(k){ if(bufCache[k]) return bufCache[k];
   const bin=Uint8Array.from(atob(clips[k]),c=>c.charCodeAt(0));
   const b=await new Promise((ok,no)=>getAC().decodeAudioData(bin.buffer,ok,no)); bufCache[k]=b; return b; }
 let playing=[], speakId=0;
-function stopSpeak(){ speakId++; playing.forEach(s=>{try{s.stop()}catch(e){}}); playing=[]; try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){} }
+function stopSpeak(){ speakId++; playEnd=0; importantEnd=0; playing.forEach(s=>{try{s.stop()}catch(e){}}); playing=[]; try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){} }
 let zhVoice=null;
 function pickVoice(){ if(!window.speechSynthesis) return; const vs=speechSynthesis.getVoices();
   zhVoice=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh[-_](HK|CN)|cmn/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null; }
 if(window.speechSynthesis){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
 function ttsSpeak(t){ if(!window.speechSynthesis) return; try{ const u=new SpeechSynthesisUtterance(t); u.lang='zh-TW'; if(zhVoice) u.voice=zhVoice; u.rate=.95; speechSynthesis.speak(u);}catch(e){} }
-async function speak(segs){
+/* queue=true：等前一句念完再念（變身、任務提示）；否則立刻打斷前一句（按鍵報數字） */
+let playEnd=0, importantEnd=0;
+speak.force=segs=>{ stopSpeak(); speak(segs,false,true); };
+async function speak(segs,queue=false,force=false){
   if(!soundOn) return; if(!Array.isArray(segs)) segs=[segs];
-  stopSpeak(); const id=++speakId;
-  if(voiceId==='tts'||!segs.every(k=>clips[k])){ ttsSpeak(segs.map(segText).join('，')); return; }
+  if(!queue&&!force&&ac&&importantEnd>ac.currentTime) return;
+  const busy=ac&&playEnd>ac.currentTime+.05;
+  if(!(queue&&busy)) stopSpeak();
+  const id=speakId;
+  if(voiceId==='tts'||!segs.every(k=>clips[k])){ if(!queue) try{speechSynthesis.cancel()}catch(e){} ttsSpeak(segs.map(segText).join('，')); return; }
   try{
     const bufs=[]; for(const k of segs){ bufs.push(await getBuf(k)); if(id!==speakId) return; }
-    const a=getAC(); let t=a.currentTime+.04;
+    const a=getAC(); let t=Math.max(a.currentTime+.04, queue&&playEnd>a.currentTime ? playEnd+.25 : 0);
     for(const b of bufs){ const s=a.createBufferSource(); s.buffer=b; s.connect(a.destination); s.start(t); playing.push(s); t+=b.duration+.1; }
+    playEnd=t; if(queue) importantEnd=t;
   }catch(e){ ttsSpeak(segs.map(segText).join('，')); }
 }
 let speakTimer=null;
@@ -571,7 +578,7 @@ function missions(el,list,key){
     const pb=el.querySelector('.mprev'); if(pb) pb.onclick=()=>{ i--; sfx('tap'); draw(); speak(K(i)); }; };
   draw();
   return { check(...a){ if(i<list.length&&list[i].ok(...a)){ i++; setTimeout(()=>{ if(myGen!==gen) return; cheer(i<list.length?'任務完成！':'太厲害了！'); draw();
-        if(i===list.length){ giveStar(key); speak('allDone'); } else speakSoon(K(i),900); },450); } },
+        if(i===list.length){ giveStar(key); speak('allDone',true); } else speak(K(i),true); },450); } },
     say(){ if(i<list.length) speak(K(i)); } };
 }
 
@@ -627,9 +634,9 @@ function l1(){
   ].map((x,i)=>({...x,ok:[(e)=>e==='merge',(e,m)=>m.value()===23&&m.canon(),(e)=>e==='break',(e,m)=>m.value()===50&&m.canon()][i]})),'l1');
   const m=createMat($('#mat'),{places:2,skin:'straw',interactive:true,labels:['個位（根）','十位（捆）'],plusLabels:['＋1根','＋1捆'],
     mergeText:()=>'10 根 → 1 捆！',breakText:()=>'1 捆 = 10 根',
-    onEvent:(e,m)=>{ say(m); if(e==='change') speakSoon(['n'+m.value()],120); if(e==='merge'){ clearTimeout(speakTimer); speak('bind1'); } ms.check(e,m); }});
+    onEvent:(e,m)=>{ say(m); if(e==='change') speakSoon(['n'+m.value()],120); if(e==='merge'){ clearTimeout(speakTimer); speak('bind1',true); } ms.check(e,m); }});
   say(m);
-  $('#spk').onclick=()=>speak(say(m));
+  $('#spk').onclick=()=>speak.force(say(m));
   $('#reset').onclick=()=>{ if(m.busy) return; m.set([0,0]); say(m); };
   setTimeout(()=>ms.say(),400);
 }
@@ -659,9 +666,9 @@ function l2(){
   const names=['10 個一 → 1 個十！','10 個十 → 1 個百！'];
   const m=createMat($('#mat'),{places:3,skin:'blocks',interactive:true,
     mergeText:p=>names[p],breakText:p=>p===2?'1 個百 = 10 個十':'1 個十 = 10 個一',
-    onEvent:(e,m,p)=>{ say(m); if(e==='change') speakSoon(['n'+m.value()],120); if(e==='merge'){ clearTimeout(speakTimer); speak('merge'+p); } ms.check(e,m,p); }});
+    onEvent:(e,m,p)=>{ say(m); if(e==='change') speakSoon(['n'+m.value()],120); if(e==='merge'){ clearTimeout(speakTimer); speak('merge'+p,true); } ms.check(e,m,p); }});
   say(m);
-  $('#spk').onclick=()=>speak(say(m));
+  $('#spk').onclick=()=>speak.force(say(m));
   $('#reset').onclick=()=>{ if(m.busy) return; m.set([0,0,0]); say(m); };
   setTimeout(()=>ms.say(),400);
 }
@@ -745,7 +752,7 @@ function l3(){
     {t:'做出 <b>7</b>',say:'做出七',ok:(d,p)=>d===7&&p===0},
   ],'l3');
   draw();
-  $('#spk').onclick=()=>speak(['d'+d+'_'+p,'n'+val()]);
+  $('#spk').onclick=()=>speak.force(['d'+d+'_'+p,'n'+val()]);
   setTimeout(()=>ms.say(),400);
 }
 
@@ -774,7 +781,7 @@ function l4(){
   $('#hint').onclick=()=>{ const T=targets[r]; const h=Math.floor(T/100),t=Math.floor(T/10)%10,o=T%10;
     const s=`百位放 ${h} 片、十位放 ${t} 條、個位放 ${o} 個`; toast(s,3500); speak(['n'+T,'h百'+h,'h十'+t,'h個'+o]); };
   $('#prev').onclick=()=>{ if(r>0&&!m.busy){ r--; sfx('tap'); ask(); } };
-  $('#spk').onclick=()=>speak(['make','n'+targets[r]]);
+  $('#spk').onclick=()=>speak.force(['make','n'+targets[r]]);
   $('#reset').onclick=()=>{ if(!m.busy&&!solved){ m.set([0,0,0]); $('#fb').innerHTML='&nbsp;'; } };
   ask();
 }
@@ -845,7 +852,7 @@ function parentSheet(){
   s.onclick=e=>{ if(e.target===s||e.target.id==='close') s.remove(); };
 }
 
-document.addEventListener('click',e=>{ const b=e.target.closest('[data-say]'); if(b){ e.stopPropagation(); getAC(); speak(b.dataset.say.split(',')); } });
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-say]'); if(b){ e.stopPropagation(); getAC(); stopSpeak(); speak(b.dataset.say.split(','),false,true); } });
 /* 自動縮放：內容一定塞進一個螢幕 */
 function fit(){ const hdr=document.querySelector('header'); const avail=innerHeight-hdr.offsetHeight-22;
   view.style.transform=''; const h=view.scrollHeight, k=Math.min(1,avail/h);
